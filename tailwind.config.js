@@ -1,0 +1,16 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    boxShadow: {
+      sm: "0.25rem 0.25rem rgba(107, 114, 128)",
+      md: "0.5rem 0.5rem rgba(107, 114, 128)",
+      DEFAULT: "1rem 1rem #5a5c69"
+    },
+    extend: {},
+  },
+  plugins: [],
+}
