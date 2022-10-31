@@ -1,6 +1,5 @@
-import type { NextPage } from "next";
 import Backdrop from "../components/Backdrop";
-import Page from "../components/Page";
+import Container from "../components/Page";
 import React, { ReactNode } from "react";
 
 function renderRecepies(): React.ReactNode {
@@ -45,22 +44,20 @@ function renderCalendar() {
   return (
     <div className="px-6 pb-6 border-b border-black">
       <p className="font-bold text-2xl text-center my-2">Calendar</p>
-      <div className="flex flex-row space-x-6">
+      <div className="flex flex-col md:flex-row flex-wrap w-full gap-6">
         {days.map((day) => renderDay(day))}
       </div>
     </div>
   );
 }
 
-const Home: NextPage = (props, state) => {
+export default function Page() {
   return (
     <Backdrop>
-      <Page>
+      <Container>
         <div>{renderCalendar()}</div>
         <div>{renderRecepies()}</div>
-      </Page>
+      </Container>
     </Backdrop>
   );
-};
-
-export default Home;
+}
