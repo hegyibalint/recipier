@@ -1,3 +1,5 @@
+const colors = require('tailwindcss/colors')
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -10,7 +12,12 @@ module.exports = {
       md: "0.5rem 0.5rem rgba(107, 114, 128)",
       DEFAULT: "1rem 1rem #5a5c69"
     },
-    extend: {},
+    extend: {
+      colors: {
+        primary: colors.slate[800],
+        secondary: colors.yellow[500]
+      }
+    },
   },
   plugins: [],
 }
