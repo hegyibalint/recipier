@@ -1,8 +1,8 @@
-import { Recipe } from "../pages/api/recipes";
-import PagerButton from "./PagerButton";
+import { Recipe } from '../pages/api/recipes';
+import PagerButton from './PagerButton';
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlusCircle } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 
 function renderRecipe(recipe: Recipe) {
   return (
@@ -28,7 +28,7 @@ function renderAddPlaceholderRecipe() {
   );
 }
 
-async function getData(numberOfRecipes = 12): Recipe[] {
+async function getData(numberOfRecipes = 12): Promise<Recipe[]> {
   const res = await fetch(
     `http://localhost:3000/api/recipes?c=${numberOfRecipes}`
   );

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   format,
@@ -9,10 +9,12 @@ import {
   isToday,
   isThisYear,
   differenceInCalendarWeeks,
-} from "date-fns";
-import { addDays } from "date-fns/esm";
-import { Dispatch, Fragment, SetStateAction, useState } from "react";
-import PagerButton from "./PagerButton";
+  endOfWeek,
+  eachDayOfInterval,
+} from 'date-fns';
+import { addDays } from 'date-fns/esm';
+import { Dispatch, Fragment, SetStateAction, use, useState } from 'react';
+import PagerButton from './PagerButton';
 
 enum DisplayMode {
   WEEK,
@@ -31,11 +33,11 @@ function renderMeal(meal: string) {
 }
 
 function renderDay(day: Date) {
-  const dayName = format(day, "EEEE");
-  const dateFormat = isThisYear(day) ? "MMM dd" : "uuuu MMM dd";
+  const dayName = format(day, 'EEEE');
+  const dateFormat = isThisYear(day) ? 'MMM dd' : 'uuuu MMM dd';
   const date = format(day, dateFormat);
 
-  const meals = ["Breakfast", "Lunch", "Dinner"];
+  const meals = ['Breakfast', 'Lunch', 'Dinner'];
 
   return (
     <div
@@ -44,7 +46,7 @@ function renderDay(day: Date) {
     >
       <p
         className={`text-center text-2xl ${
-          isToday(day) ? "underline font-extrabold" : ""
+          isToday(day) ? 'underline font-extrabold' : ''
         }`}
       >
         {dayName}
@@ -58,27 +60,17 @@ function renderDay(day: Date) {
 
 function* renderWeek(startDay: Date) {
   const nextWeek = addWeeks(startDay, 1);
+  const days = eachDayOfInterval({
+    start: startOfWeek(startDay),
+    end: endOfWeek(startDay),
+  });
 
   for (let i = startDay; isBefore(i, nextWeek); i = addDays(i, 1)) {
     yield renderDay(i);
   }
 }
 
-function* renderMonth(startDay: Date) {
-  return <p>Nope</p>;
-}
-
-function renderCalendarDays(displayMode: DisplayMode, startDay: Date) {
-  switch (displayMode) {
-    case DisplayMode.WEEK:
-      return [...renderWeek(startDay)];
-    case DisplayMode.MONTH:
-      return [...renderMonth(startDay)];
-  }
-}
-
 function renderCalendar(
-  displayMode: DisplayMode,
   startDay: Date,
   setStartDay: Dispatch<SetStateAction<Date>>
 ) {
@@ -93,7 +85,7 @@ function renderCalendar(
   return (
     <Fragment>
       <PagerButton direction="LEFT" onClick={subWeekAction} />
-      {renderCalendarDays(displayMode, startDay)}
+      {[...renderWeek(startDay)]}
       <PagerButton direction="RIGHT" onClick={addWeekAction} />
     </Fragment>
   );
@@ -101,9 +93,9 @@ function renderCalendar(
 
 function renderTimeDistance(startDay: Date) {
   const formatDiff = (diff: number) => {
-    if (diff == 0) return "This week";
-    else if (diff == -1) return "Previous week";
-    else if (diff == +1) return "Next week";
+    if (diff == 0) return 'This week';
+    else if (diff == -1) return 'Previous week';
+    else if (diff == +1) return 'Next week';
     else if (diff < -1) return `${Math.abs(diff)} weeks before`;
     else return `${diff} weeks ahead`;
   };
@@ -112,9 +104,18 @@ function renderTimeDistance(startDay: Date) {
   return <p>(&thinsp;{formatDiff(weekDifference)}&thinsp;)</p>;
 }
 
+async function getData(startDay: Date) {
+  const endDay = endOfWeek(startDay);
+
+  const res = await fetch(
+    `http://localhost:3000/api/meals?from=${startDay}&to=${endDay}`
+  );
+  return res.json();
+}
+
 export default function MealCalendar() {
-  const [displayMode, setDisplayMode] = useState(DisplayMode.WEEK);
   const [startDay, setStartDay] = useState(startOfWeek(Date.now()));
+  const meals = use(getData(startDay));
 
   return (
     <div className="px-6 pb-6 border-b border-black">
@@ -123,7 +124,7 @@ export default function MealCalendar() {
         <p className="text-xl">{renderTimeDistance(startDay)}</p>
       </div>
       <div className="flex flex-col md:flex-row flex-wrap w-full gap-6">
-        {renderCalendar(displayMode, startDay, setStartDay)}
+        {renderCalendar(startDay, setStartDay)}
       </div>
     </div>
   );
