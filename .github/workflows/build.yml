@@ -1,16 +1,16 @@
 name: build
-run-name: Building
+run-name: Lint and Check
 
 on:
   - push
 
 jobs:
-  lint:
+  lint-and-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: 19
-      - name: Lint
-        run: npm ci
+      - run: npm ci
+      - run: npm lint
