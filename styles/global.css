@@ -2,7 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-    margin: 0;
-    padding: 0;
+@layer base {
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    [data-nextjs-scroll-focus-boundary] {
+        display: contents;
+    }
 }
