@@ -1,37 +1,30 @@
-import { Meal, Mealtime, PrismaClient, Recipe } from "@prisma/client";
-import {
-  addDays,
-  addWeeks,
-  eachDayOfInterval,
-  isBefore,
-  subDays,
-  subWeeks,
-} from "date-fns";
+import { Meal, Mealtime, PrismaClient, Recipe } from '@prisma/client';
+import { addDays, eachDayOfInterval, subDays } from 'date-fns';
 
 const prisma = new PrismaClient();
 
 async function createMealtimes(): Promise<Mealtime[]> {
   return Promise.all([
     prisma.mealtime.upsert({
-      where: { name: "Breakfast" },
+      where: { name: 'Breakfast' },
       create: {
-        name: "Breakfast",
+        name: 'Breakfast',
         order: 1,
       },
       update: {},
     }),
     prisma.mealtime.upsert({
-      where: { name: "Lunch" },
+      where: { name: 'Lunch' },
       create: {
-        name: "Lunch",
+        name: 'Lunch',
         order: 2,
       },
       update: {},
     }),
     prisma.mealtime.upsert({
-      where: { name: "Dinner" },
+      where: { name: 'Dinner' },
       create: {
-        name: "Dinner",
+        name: 'Dinner',
         order: 3,
       },
       update: {},
@@ -40,7 +33,7 @@ async function createMealtimes(): Promise<Mealtime[]> {
 }
 
 async function createRecipes(): Promise<Recipe[]> {
-  const names = ["Porky Pie", "Poopsicle", "Bacalhaudding"];
+  const names = ['Porky Pie', 'Poopsicle', 'Bacalhaudding'];
   return Promise.all(
     names.map((name) =>
       prisma.recipe.upsert({
@@ -88,7 +81,7 @@ async function createMeals(
     end: addDays(today, 7),
   });
 
-  console.log("Generating meals");
+  console.log('Generating meals');
   return Promise.all(
     days.flatMap((day) => {
       console.log(`Creating for day ${day}`);
@@ -104,7 +97,7 @@ async function createMeals(
 }
 
 async function main() {
-  console.log("Seeding...");
+  console.log('Seeding...');
   const mealtimes = await createMealtimes();
   const recipes = await createRecipes();
   const meals = await createMeals(mealtimes, recipes);
