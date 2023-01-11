@@ -14,7 +14,7 @@ model Mealtime {
   // Secondary attributes
   name               String @unique
   order              Int
-  AssignedMealRecipe Meal[]
+  assignedMealRecipe Meal[]
 }
 
 model Recipe {
@@ -22,8 +22,11 @@ model Recipe {
   id Int @id @default(autoincrement())
 
   // Secondary attributes
-  name               String @unique
-  AssignedMealRecipe Meal[]
+  name String @unique
+
+  // Relations
+  assignedMealRecipe Meal[]
+  measure            Measure[]
 }
 
 model Meal {
@@ -34,7 +37,63 @@ model Meal {
   recipeId   Int
 
   // Secondary attributes
-  date DateTime
+  date  String
+  scale Int    @default(1)
 
   @@id([mealtimeId, recipeId, date])
+}
+
+model Ingredient {
+  // Primary attributes
+  id Int @id @default(autoincrement())
+
+  // Secondary attributes
+  name String @unique
+
+  // Relations
+  measure Measure[]
+}
+
+model Unit {
+  // Primary attributes
+  id Int @id @default(autoincrement())
+
+  // Secondary attributes
+  name String @unique
+
+  // Relations
+  measure  Measure[]
+  fromUnit UnitConversion[] @relation("fromUnit")
+  toUnit   UnitConversion[] @relation("toUnit")
+}
+
+model UnitConversion {
+  // Primary attributes
+  id Int @id @default(autoincrement())
+
+  // Secondary attributes
+  //  -> From
+  fromAmount Float
+  fromUnitId Int
+  fromUnit   Unit  @relation("fromUnit", fields: [fromUnitId], references: [id])
+  //  <- To
+  toAmount   Float
+  toUnitId   Int
+  toUnit     Unit  @relation("toUnit", fields: [toUnitId], references: [id])
+
+  @@unique([fromUnitId, toUnitId])
+}
+
+model Measure {
+  // Primary attributes
+  recipeId Int
+  recipe   Recipe @relation(fields: [recipeId], references: [id])
+  ingredientId Int
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+
+  // Secondary attributes
+  unitId Int
+  unit   Unit @relation(fields: [unitId], references: [id])
+
+  @@id([recipeId, ingredientId])
 }

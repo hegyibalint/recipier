@@ -1,5 +1,5 @@
-import { Meal, Mealtime, PrismaClient, Recipe } from '@prisma/client';
-import { addDays, eachDayOfInterval, subDays } from 'date-fns';
+import { Ingredient, Meal, Mealtime, Measure, PrismaClient, Recipe, Unit } from '@prisma/client';
+import { addDays, eachDayOfInterval, formatISO, subDays } from 'date-fns';
 
 const prisma = new PrismaClient();
 
@@ -49,21 +49,19 @@ async function createRecipes(): Promise<Recipe[]> {
   );
 }
 
-async function createMeal(
-  day: Date,
-  mealtime: Mealtime,
-  recipe: Recipe
-): Promise<Meal> {
+async function createMeal(day: Date, mealtime: Mealtime, recipe: Recipe): Promise<Meal> {
+  const date = formatISO(day, { representation: 'date' });
+
   return prisma.meal.upsert({
     where: {
       mealtimeId_recipeId_date: {
-        date: day,
+        date: date,
         mealtimeId: mealtime.id,
         recipeId: recipe.id,
       },
     },
     create: {
-      date: day,
+      date: date,
       mealtimeId: mealtime.id,
       recipeId: recipe.id,
     },
@@ -71,28 +69,80 @@ async function createMeal(
   });
 }
 
-async function createMeals(
-  mealtimes: Mealtime[],
-  recipes: Recipe[]
-): Promise<Meal[]> {
+async function createMeals(mealtimes: Mealtime[], recipes: Recipe[]): Promise<Meal[]> {
   const today = new Date();
+  const utcToday = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDay());
+
   const days = eachDayOfInterval({
-    start: subDays(today, 7),
-    end: addDays(today, 7),
+    start: subDays(utcToday, 7),
+    end: addDays(utcToday, 7),
   });
 
-  console.log('Generating meals');
   return Promise.all(
     days.flatMap((day) => {
-      console.log(`Creating for day ${day}`);
       return mealtimes.flatMap((mealtime) => {
-        console.log(`  Creating for meal ${mealtime.name}`);
         return recipes.map((recipe) => {
-          console.log(`    Creating for recipe ${recipe.name}`);
           return createMeal(day, mealtime, recipe);
         });
       });
     })
+  );
+}
+
+async function createIngredients(): Promise<Ingredient[]> {
+  const ingredients = ['apple', 'banana', 'coconut'];
+
+  return Promise.all(
+    ingredients.map((ingredient) =>
+      prisma.ingredient.upsert({
+        where: {
+          name: ingredient,
+        },
+        create: {
+          name: ingredient,
+        },
+        update: {},
+      })
+    )
+  );
+}
+
+async function createUnits(): Promise<Unit[]> {
+  const units = ['g', 'cup', 'tbsp'];
+
+  return Promise.all(
+    units.map((unit) =>
+      prisma.unit.upsert({
+        where: {
+          name: unit,
+        },
+        create: {
+          name: unit,
+        },
+        update: {},
+      })
+    )
+  );
+}
+
+async function createMeasures(recipes: Recipe[], ingredients: Ingredient[], units: Unit[]): Promise<Measure[]> {
+  return Promise.all(
+    recipes.map((recipe, i) =>
+      prisma.measure.upsert({
+        where: {
+          recipeId_ingredientId: {
+            recipeId: recipe.id,
+            ingredientId: ingredients[i].id,
+          },
+        },
+        create: {
+          recipeId: recipe.id,
+          unitId: units[i].id,
+          ingredientId: ingredients[i].id,
+        },
+        update: {},
+      })
+    )
   );
 }
 
@@ -101,6 +151,10 @@ async function main() {
   const mealtimes = await createMealtimes();
   const recipes = await createRecipes();
   const meals = await createMeals(mealtimes, recipes);
+
+  const ingredients = await createIngredients();
+  const units = await createUnits();
+  const measures = await createMeasures(recipes, ingredients, units);
 }
 
 main()
