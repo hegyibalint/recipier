@@ -1,19 +1,22 @@
 import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
-import { Mealtime } from '@prisma/client';
+import { Meal, Mealtime, Recipe } from "@prisma/client";
+import { format, parseISO } from 'date-fns';
+import { useEffect, useState } from 'react';
 
 interface MealtimeProps {
   mealtime: Mealtime;
+  recipes: Recipe[];
 }
 
 function Mealtime(props: MealtimeProps) {
   return (
-    <div className="flex flex-row">
-      <div className="border-2 border-r-8 border-gray-500 border-r-primary p-2 [writing-mode:vertical-rl]">
+    <div className="w-full flex flex-row border-b-2 border-dashed border-gray-500">
+      <div className="border-r-4 border-r-primary px-2 py-6 [writing-mode:vertical-rl]">
         <p className="text-2xl rotate-180">{props.mealtime.name}</p>
       </div>
       <div className="flex-grow">
-        <p>Rest</p>
+        {props.recipes.map(meal => meal.)}
       </div>
     </div>
   );
@@ -21,17 +24,31 @@ function Mealtime(props: MealtimeProps) {
 
 export default function MealPage() {
   const router = useRouter();
+  const date = router.query.id as string;
 
-  const mealtimeQuery = trpc.mealtimes.list.useQuery();
-  const mealtimes = mealtimeQuery.data || [];
+  const [formattedTime, setFormattedTime] = useState('?');
 
-  const mealsQuery = trpc.meals.listForDate.useQuery(router.query.id as string);
-  const meals = mealsQuery.data || [];
+  const mealtimesQuery = trpc.mealtimes.list.useQuery();
+  const mealtimes = mealtimesQuery.data || [];
+
+  const mealsQuery = trpc.meals.listForDate.useQuery(date);
+  const recipes = mealsQuery.data || [];
+
+  useEffect(() => {
+    if (router.isReady) {
+      const formattedTime = format(parseISO(date), 'MMM dd');
+      setFormattedTime(formattedTime);
+    }
+  }, [router.isReady, date]);
 
   return (
-    <div className="flex-grow flex flex-col p-4 gap-2 container mx-auto">
+    <div className="flex-grow flex flex-col p-4 container mx-auto">
+      <div className="w-full text-center">
+        <h1 className="text-2xl">~ Meals &ndash; {formattedTime} ~</h1>
+      </div>
+
       {mealtimes.map((mealtime) => (
-        <Mealtime key={mealtime.id} mealtime={mealtime} />
+        <Mealtime key={mealtime.id} mealtime={mealtime} recipes={recipes.filter((meal) => meal.mealtimeId === mealtime.id)} />
       ))}
     </div>
   );

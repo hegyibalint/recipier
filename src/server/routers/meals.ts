@@ -1,16 +1,14 @@
 import { z } from 'zod';
 import { procedure, router } from '../trpc';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 const client = new PrismaClient();
 
-async function queryMeals(from: string, to: string) {
+async function queryMeals(query: Prisma.MealWhereInput) {
   const meals = await client.meal.findMany({
-    where: {
-      date: {
-        gte: from,
-        lte: to,
-      },
+    where: query,
+    select: {
+      recipeId: true,
     },
   });
 
@@ -30,9 +28,9 @@ async function queryMeals(from: string, to: string) {
 export const mealsRouter = router({
   list: procedure.query(() => client.meal.findMany()),
   listForDate: procedure.input(z.string()).query(({ input }) =>
-    client.meal.findMany({
-      where: {
-        date: input,
+    queryMeals({
+      date: {
+        equals: input,
       },
     })
   ),
@@ -43,5 +41,12 @@ export const mealsRouter = router({
         to: z.string(),
       })
     )
-    .query(({ input }) => queryMeals(input.from, input.to)),
+    .query(({ input }) =>
+      queryMeals({
+        date: {
+          gte: input.from,
+          lte: input.to,
+        },
+      })
+    ),
 });

@@ -96,7 +96,7 @@ function CalendarTimingHeader(props: MealTimesHeaderProps) {
   return (
     <p className="text-2xl">
       <span>~ </span>
-      <span>Meals - </span>
+      <span>Meals &ndash; </span>
       {formatTimeDistance(weekDifference)}
       <span> ~</span>
     </p>
