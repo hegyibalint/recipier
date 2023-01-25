@@ -9,26 +9,26 @@ async function createMealtimes(): Promise<Mealtime[]> {
       where: { name: 'Breakfast' },
       create: {
         name: 'Breakfast',
-        order: 1,
+        order: 1
       },
-      update: {},
+      update: {}
     }),
     prisma.mealtime.upsert({
       where: { name: 'Lunch' },
       create: {
         name: 'Lunch',
-        order: 2,
+        order: 2
       },
-      update: {},
+      update: {}
     }),
     prisma.mealtime.upsert({
       where: { name: 'Dinner' },
       create: {
         name: 'Dinner',
-        order: 3,
+        order: 3
       },
-      update: {},
-    }),
+      update: {}
+    })
   ]);
 }
 
@@ -38,12 +38,12 @@ async function createRecipes(): Promise<Recipe[]> {
     names.map((name) =>
       prisma.recipe.upsert({
         where: {
-          name: name,
+          name: name
         },
         create: {
-          name: name,
+          name: name
         },
-        update: {},
+        update: {}
       })
     )
   );
@@ -57,15 +57,15 @@ async function createMeal(day: Date, mealtime: Mealtime, recipe: Recipe): Promis
       mealtimeId_recipeId_date: {
         date: date,
         mealtimeId: mealtime.id,
-        recipeId: recipe.id,
-      },
+        recipeId: recipe.id
+      }
     },
     create: {
       date: date,
       mealtimeId: mealtime.id,
-      recipeId: recipe.id,
+      recipeId: recipe.id
     },
-    update: {},
+    update: {}
   });
 }
 
@@ -75,7 +75,7 @@ async function createMeals(mealtimes: Mealtime[], recipes: Recipe[]): Promise<Me
 
   const days = eachDayOfInterval({
     start: subDays(utcToday, 7),
-    end: addDays(utcToday, 7),
+    end: addDays(utcToday, 7)
   });
 
   return Promise.all(
@@ -96,12 +96,12 @@ async function createIngredients(): Promise<Ingredient[]> {
     ingredients.map((ingredient) =>
       prisma.ingredient.upsert({
         where: {
-          name: ingredient,
+          name: ingredient
         },
         create: {
-          name: ingredient,
+          name: ingredient
         },
-        update: {},
+        update: {}
       })
     )
   );
@@ -114,33 +114,37 @@ async function createUnits(): Promise<Unit[]> {
     units.map((unit) =>
       prisma.unit.upsert({
         where: {
-          name: unit,
+          name: unit
         },
         create: {
-          name: unit,
+          name: unit
         },
-        update: {},
+        update: {}
       })
     )
   );
 }
 
-async function createMeasures(recipes: Recipe[], ingredients: Ingredient[], units: Unit[]): Promise<Measure[]> {
+async function createMeasures(
+  recipes: Recipe[],
+  ingredients: Ingredient[],
+  units: Unit[]
+): Promise<Measure[]> {
   return Promise.all(
     recipes.map((recipe, i) =>
       prisma.measure.upsert({
         where: {
           recipeId_ingredientId: {
             recipeId: recipe.id,
-            ingredientId: ingredients[i].id,
-          },
+            ingredientId: ingredients[i].id
+          }
         },
         create: {
           recipeId: recipe.id,
           unitId: units[i].id,
-          ingredientId: ingredients[i].id,
+          ingredientId: ingredients[i].id
         },
-        update: {},
+        update: {}
       })
     )
   );
