@@ -1,5 +1,21 @@
-import { router } from '$lib/trpc';
 import type { Handle } from '@sveltejs/kit';
-import { createTRPCHandle } from 'trpc-sveltekit';
+import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
+import { appRouter } from './server/trpc';
+import { createContext } from './server/context';
 
-export const handle: Handle = createTRPCHandle({ router });
+const trpcPathBase = '/api/trpc';
+
+export const handle: Handle = async ({ event, resolve }) => {
+  if (event.url.pathname.startsWith(`${trpcPathBase}/`)) {
+    const response = await fetchRequestHandler({
+      endpoint: trpcPathBase,
+      req: event.request,
+      router: appRouter,
+      createContext: createContext
+    });
+
+    return response;
+  }
+
+  return await resolve(event);
+};

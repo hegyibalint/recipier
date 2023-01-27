@@ -1,18 +1,24 @@
 <script lang="ts">
-  import { differenceInWeeks } from 'date-fns';
+  import type { Meal, Mealtime, Recipe } from '@prisma/client';
+  import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+  import { endOfWeek, startOfWeek } from 'date-fns';
+  import { onMount } from 'svelte';
+  import { trpc } from '../../server/client';
+  import type { AppRouter } from '../../server/_app';
 
-  let date: Date = new Date();
+  type RouterInput = inferRouterInputs<AppRouter>;
+  type RouterOutput = inferRouterOutputs<AppRouter>;
 
-  export let weekText: string = formatDistance(differenceInWeeks(date, new Date()));
-  $: weekText = formatDistance(differenceInWeeks(date, new Date()));
+  export let date: Date = new Date();
+  export let mealtimes: Mealtime[];
 
-  function formatDistance(weekDifference: number) {
-    if (weekDifference == 0) return 'This week';
-    else if (weekDifference == -1) return 'Previous week';
-    else if (weekDifference == +1) return 'Next week';
-    else if (weekDifference < -1) return `${Math.abs(weekDifference)} weeks before`;
-    else return `${weekDifference} weeks ahead`;
-  }
+  let meals: RouterOutput['meals']['query'];
+  onMount(async () => {
+    meals = await trpc.meals.query({
+      from: startOfWeek(date),
+      to: endOfWeek(date)
+    });
+  });
 </script>
 
 <div class="flex flex-row">
