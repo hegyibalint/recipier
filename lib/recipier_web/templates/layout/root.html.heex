@@ -9,12 +9,15 @@
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")}/>
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
   </head>
-  <body>
+  <body class="flex flex-col min-h-screen">
     <header class="w-full bg-primary text-white text-center py-4">
       <h1>Recepier</h1>
     </header>
-    <%= @inner_content %>
-    <footer>
+    <main class="container mx-auto flex flex-col flex-grow items-center">
+      <%= @inner_content %>
+    </main>
+    <footer class="bg-primary text-white text-center">
+      <p>Made with P</p>
     </footer>
   </body>
 </html>
