@@ -17,8 +17,9 @@ defmodule RecipierWeb.Router do
   scope "/", RecipierWeb do
     pipe_through :browser
 
-    # get "/", PageController, :index
     live "/", Home
+    live "/ingredients", Ingredients
+    live "/meals/:date", MealsView
   end
 
   # Other scopes may use custom stacks.

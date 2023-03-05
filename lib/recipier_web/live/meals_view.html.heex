@@ -1,0 +1,20 @@
+<div class="container mx-auto text-center">
+  <h2>~ <%= @date %> ~</h2>
+  <div class="grid grid-flow-col w-full">
+    <%= for mealtime <- @mealtimes do %>
+      <div class="flex flex-col">
+        <p><%= mealtime.name %></p>
+        <%= for recipe <- @recipes[mealtime.id] do %>
+          <p><%= recipe.name %></p>
+        <% end %>
+        <button
+          phx-click="add_recipe"
+          phx-value-mealtime-id={mealtime.id}
+          class="bg-primary text-white"
+        >
+          Add recipe
+        </button>
+      </div>
+    <% end %>
+  </div>
+</div>

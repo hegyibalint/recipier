@@ -1,0 +1,9 @@
+<h2>~ Ingredients ~</h2>
+<input phx-change="search" type="text" />
+
+<%= for ingredient <- @ingredients do %>
+  <p>
+    <%= ingredient.name %>
+    <span class="text-gray-500">(<%= ingredient.default_unit.name %>)</span>
+  </p>
+<% end %>
