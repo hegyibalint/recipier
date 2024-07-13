@@ -1,0 +1,19 @@
+micronaut:
+  application:
+    name: recipier
+
+datasources:
+  default:
+    db-type: postgres
+    dialect: POSTGRES
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/recipier
+    username: postgres
+    password: postgres
+
+flyway:
+  datasources:
+    default:
+      enabled: true
+      clean-disabled: false
+      clean-schema: true
