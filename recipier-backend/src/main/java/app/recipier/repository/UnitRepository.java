@@ -1,5 +1,6 @@
 package app.recipier.repository;
 
+import app.recipier.domain.model.Unit;
 import app.recipier.domain.response.UnitDtoResponse;
 import jakarta.inject.Singleton;
 import org.jooq.DSLContext;
@@ -17,9 +18,9 @@ public class UnitRepository {
         this.dsl = dsl;
     }
 
-    public List<UnitDtoResponse> getAll() {
+    public List<Unit> getAll() {
         return dsl.selectFrom(UNIT)
-                .fetchInto(UnitDtoResponse.class);
+                .fetchInto(Unit.class);
     }
 
 }

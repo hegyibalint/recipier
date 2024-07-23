@@ -4,6 +4,7 @@
  * and should modify this configuration to best suit your team's needs.
  */
 
+
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
   root: true,
@@ -28,7 +29,7 @@ module.exports = {
     // React
     {
       files: ["**/*.{js,jsx,ts,tsx}"],
-      plugins: ["react", "jsx-a11y"],
+      plugins: ["react", "jsx-a11y", "@stylistic"],
       extends: [
         "plugin:react/recommended",
         "plugin:react/jsx-runtime",
@@ -53,7 +54,7 @@ module.exports = {
     // Typescript
     {
       files: ["**/*.{ts,tsx}"],
-      plugins: ["@typescript-eslint", "import"],
+      plugins: ["@typescript-eslint", "import", "@stylistic"],
       parser: "@typescript-eslint/parser",
       settings: {
         "import/internal-regex": "^~/",

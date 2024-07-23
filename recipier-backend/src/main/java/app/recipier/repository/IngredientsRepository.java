@@ -1,12 +1,12 @@
 package app.recipier.repository;
 
+import app.recipier.db.Tables;
 import app.recipier.domain.model.Ingredient;
 import jakarta.inject.Singleton;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 
 import java.util.List;
-
-import static app.recipier.db.Tables.INGREDIENT;
 
 @Singleton
 public class IngredientsRepository {
@@ -17,10 +17,8 @@ public class IngredientsRepository {
         this.dsl = dsl;
     }
 
-    public List<Ingredient> getLike(String name) {
-        return dsl.selectFrom(INGREDIENT)
-                .where(INGREDIENT.NAME.similarTo(name))
-                .limit(10)
+    public List<Ingredient> getAll() {
+        return dsl.selectFrom(Tables.INGREDIENT)
                 .fetchInto(Ingredient.class);
     }
 

@@ -10,6 +10,7 @@ plugins {
     id("org.flywaydb.flyway") version "10.15.2"
     id("nu.studer.jooq") version "9.0"
     id("io.micronaut.application") version "4.4.0"
+    id("io.micronaut.test-resources") version "4.4.0"
     id("io.micronaut.aot") version "4.4.0"
 }
 
@@ -45,6 +46,9 @@ flyway {
     url = "jdbc:postgresql://localhost:5432/recipier"
     user = "postgres"
     password = "postgres"
+    cleanDisabled = false
+    baselineOnMigrate = true
+    cleanOnValidationError = true
 }
 
 jooq {
@@ -103,6 +107,9 @@ micronaut {
         replaceLogbackXml = true
     }
 
+    testResources {
+        additionalModules.add("jdbc-postgresql")
+    }
 }
 
 java {

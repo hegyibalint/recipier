@@ -16,10 +16,9 @@ public class IngredientsController {
         this.ingredientsRepository = ingredientsRepository;
     }
 
-    @Get("/like/{name}")
-    public List<Ingredient> getIngredientsLike(String name) {
-        var like = ingredientsRepository.getLike(name);
-        return like;
+    @Get()
+    public List<Ingredient> getAll() {
+        return ingredientsRepository.getAll();
     }
 
 }

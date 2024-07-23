@@ -9,6 +9,8 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   return (
-    <div>Home</div>
+    <div>
+      <a href="/new-recipe">New Recipe</a>
+    </div>
   );
 }

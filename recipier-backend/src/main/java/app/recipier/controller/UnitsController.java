@@ -1,5 +1,6 @@
 package app.recipier.controller;
 
+import app.recipier.domain.model.Unit;
 import app.recipier.domain.response.UnitDtoResponse;
 import app.recipier.repository.UnitRepository;
 import io.micronaut.http.annotation.Controller;
@@ -17,7 +18,7 @@ public class UnitsController {
     }
 
     @Get()
-    public List<UnitDtoResponse> getAll() {
+    public List<Unit> getAll() {
         return unitRepository.getAll();
     }
 
