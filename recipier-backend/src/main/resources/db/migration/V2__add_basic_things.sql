@@ -1,6 +1,13 @@
 -- Database: PostgreSQL
 -- Adding basic units to the database
 
+INSERT INTO mealtime
+VALUES (DEFAULT, 1, 'Breakfast', 'The first meal of the day');
+INSERT INTO mealtime
+VALUES (DEFAULT, 2, 'Lunch', 'The second meal of the day');
+INSERT INTO mealtime
+VALUES (DEFAULT, 3, 'Dinner', 'The third meal of the day');
+
 INSERT INTO ingredient
 VALUES (DEFAULT, 'cabbage', 'Nice and green');
 INSERT INTO ingredient

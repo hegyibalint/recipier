@@ -1,11 +1,13 @@
 package app.recipier.repository;
 
-import app.recipier.domain.model.Unit;
-import app.recipier.domain.response.UnitDtoResponse;
+import app.recipier.domain.Unit;
+import app.recipier.domain.request.NewUnit;
 import jakarta.inject.Singleton;
 import org.jooq.DSLContext;
+import org.jooq.exception.IntegrityConstraintViolationException;
 
 import java.util.List;
+import java.util.Objects;
 
 import static app.recipier.db.Tables.UNIT;
 
@@ -23,4 +25,13 @@ public class UnitRepository {
                 .fetchInto(Unit.class);
     }
 
+    public Unit create(NewUnit unit) throws IntegrityConstraintViolationException {
+        return Objects.requireNonNull(
+                dsl.insertInto(UNIT)
+                        .set(dsl.newRecord(UNIT, unit))
+                        .returning()
+                        .fetchOne(),
+                "Unit was not created"
+        ).into(Unit.class);
+    }
 }

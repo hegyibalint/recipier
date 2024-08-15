@@ -1,10 +1,12 @@
 package app.recipier.controller;
 
-import app.recipier.domain.model.Unit;
-import app.recipier.domain.response.UnitDtoResponse;
+import app.recipier.domain.Unit;
+import app.recipier.domain.request.NewUnit;
 import app.recipier.repository.UnitRepository;
+import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.Post;
 
 import java.util.List;
 
@@ -20,6 +22,11 @@ public class UnitsController {
     @Get()
     public List<Unit> getAll() {
         return unitRepository.getAll();
+    }
+
+    @Post()
+    public Unit create(@Body NewUnit unit) {
+        return unitRepository.create(unit);
     }
 
 }

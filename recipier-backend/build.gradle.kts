@@ -1,3 +1,4 @@
+import app.recipier.buildsrc.PostgresContainerService
 import org.jooq.meta.jaxb.Logging
 
 buildscript {
@@ -10,7 +11,6 @@ plugins {
     id("org.flywaydb.flyway") version "10.15.2"
     id("nu.studer.jooq") version "9.0"
     id("io.micronaut.application") version "4.4.0"
-    id("io.micronaut.test-resources") version "4.4.0"
     id("io.micronaut.aot") version "4.4.0"
 }
 
@@ -23,9 +23,11 @@ dependencies {
     annotationProcessor("io.micronaut:micronaut-http-validation")
     annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
     annotationProcessor("io.micronaut.data:micronaut-data-processor")
+    annotationProcessor("io.micronaut.validation:micronaut-validation-processor")
 
     implementation("io.micronaut.flyway:micronaut-flyway")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
+    implementation("io.micronaut.validation:micronaut-validation")
     implementation("io.micronaut.sql:micronaut-jooq")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
 
@@ -36,6 +38,9 @@ dependencies {
     runtimeOnly("org.yaml:snakeyaml")
 
     testImplementation("io.micronaut:micronaut-http-client")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.assertj:assertj-core")
 }
 
 application {
@@ -57,6 +62,7 @@ jooq {
             create("main") {
                 jooqConfiguration.apply {
                     logging = Logging.WARN
+                    generateSchemaSourceOnCompilation = false
                     jdbc.apply {
                         driver = "org.postgresql.Driver"
                         url = "jdbc:postgresql://localhost:5432/recipier"
@@ -79,7 +85,6 @@ jooq {
                         target.apply {
                             packageName = "app.recipier.db"
                         }
-                        strategy.name = "org.jooq.codegen.DefaultGeneratorStrategy"
                     }
                 }
             }
@@ -106,15 +111,12 @@ micronaut {
         optimizeNetty = true
         replaceLogbackXml = true
     }
-
-    testResources {
-        additionalModules.add("jdbc-postgresql")
-    }
 }
 
 java {
-    sourceCompatibility = JavaVersion.toVersion("21")
-    targetCompatibility = JavaVersion.toVersion("21")
+   toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+   }
 }
 
 graalvmNative {
@@ -122,13 +124,11 @@ graalvmNative {
 }
 
 tasks{
-    val flywayMigrate by getting
-
-    val generateJooq by getting {
-        dependsOn(flywayMigrate)
-    }
-
     test {
         useJUnitPlatform()
+    }
+
+    val generateJooq by getting {
+        dependsOn("flywayMigrate")
     }
 }

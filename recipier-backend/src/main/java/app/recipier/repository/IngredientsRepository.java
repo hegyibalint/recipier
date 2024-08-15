@@ -1,12 +1,13 @@
 package app.recipier.repository;
 
 import app.recipier.db.Tables;
-import app.recipier.domain.model.Ingredient;
+import app.recipier.domain.Ingredient;
+import app.recipier.domain.request.NewIngredient;
 import jakarta.inject.Singleton;
 import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 
 import java.util.List;
+import java.util.Objects;
 
 @Singleton
 public class IngredientsRepository {
@@ -22,4 +23,14 @@ public class IngredientsRepository {
                 .fetchInto(Ingredient.class);
     }
 
+    public Ingredient create(NewIngredient newIngredient) {
+        return Objects.requireNonNull(
+                dsl.insertInto(Tables.INGREDIENT)
+                        .set(Tables.INGREDIENT.NAME, newIngredient.name())
+                        .set(Tables.INGREDIENT.DESCRIPTION, newIngredient.description())
+                        .returning()
+                        .fetchOne(),
+                "Ingredient was not created"
+        ).into(Ingredient.class);
+    }
 }

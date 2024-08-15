@@ -1,6 +1,7 @@
 package app.recipier.controller;
 
-import app.recipier.domain.model.Ingredient;
+import app.recipier.domain.Ingredient;
+import app.recipier.domain.request.NewIngredient;
 import app.recipier.repository.IngredientsRepository;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -21,4 +22,7 @@ public class IngredientsController {
         return ingredientsRepository.getAll();
     }
 
+    public Ingredient create(NewIngredient newIngredient) {
+        return ingredientsRepository.create(newIngredient);
+    }
 }

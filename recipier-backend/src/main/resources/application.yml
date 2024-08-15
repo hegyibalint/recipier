@@ -12,7 +12,9 @@ datasources:
     password: postgres
 
 flyway:
+  clean-disabled: false
   datasources:
     default:
       enabled: true
-      baseline-on-migrate: true
+      clean-disabled: false
+      clean-on-validation-error: true
