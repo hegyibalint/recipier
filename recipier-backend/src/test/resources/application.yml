@@ -1,0 +1,14 @@
+micronaut:
+  application:
+    name: recipier
+
+datasources:
+  default:
+    url: jdbc:tc:postgresql:16-alpine:///recipier
+    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+## Flyway configuration
+#flyway:
+#  datasources:
+#    default:
+#      enabled: true
