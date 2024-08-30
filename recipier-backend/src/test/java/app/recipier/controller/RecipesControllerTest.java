@@ -19,7 +19,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @MicronautTest
-class RecipesControllerTest extends AbstractDatabaseTest {
+class RecipesControllerTest {
 
     @Inject
     DSLContext dslContext;
@@ -43,11 +43,9 @@ class RecipesControllerTest extends AbstractDatabaseTest {
         var testUnit = unitRepository.create(
                 new NewUnit(UnitType.QUANTITY, "test", "t", "Test unit description")
         );
-
         var testIngredient = ingredientsRepository.create(
                 new NewIngredient("Apple", "Test ingredient description")
         );
-
         var newRecipe = new NewRecipe(
                 "Test Recipe",
                 "Test Description",

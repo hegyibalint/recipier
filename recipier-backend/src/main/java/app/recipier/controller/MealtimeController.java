@@ -1,25 +1,26 @@
 package app.recipier.controller;
 
+import app.recipier.db.Tables;
 import app.recipier.domain.Mealtime;
-import app.recipier.repository.MealtimesRepository;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import org.jooq.DSLContext;
 
 import java.util.List;
 
 @Controller("mealtimes")
 public class MealtimeController {
 
-    MealtimesRepository mealtimesRepository;
+    private final DSLContext dsl;
 
-    public MealtimeController(MealtimesRepository mealtimesRepository) {
-        this.mealtimesRepository = mealtimesRepository;
+    public MealtimeController(DSLContext dsl) {
+        this.dsl = dsl;
     }
 
 
     @Get()
     public List<Mealtime> getAll() {
-        return mealtimesRepository.getAll();
+        return dsl.selectFrom(Tables.MEALTIME).fetchInto(Mealtime.class);
     }
 
 }

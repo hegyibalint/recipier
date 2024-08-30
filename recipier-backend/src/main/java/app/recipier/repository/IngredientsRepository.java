@@ -24,13 +24,6 @@ public class IngredientsRepository {
     }
 
     public Ingredient create(NewIngredient newIngredient) {
-        return Objects.requireNonNull(
-                dsl.insertInto(Tables.INGREDIENT)
-                        .set(Tables.INGREDIENT.NAME, newIngredient.name())
-                        .set(Tables.INGREDIENT.DESCRIPTION, newIngredient.description())
-                        .returning()
-                        .fetchOne(),
-                "Ingredient was not created"
-        ).into(Ingredient.class);
+
     }
 }

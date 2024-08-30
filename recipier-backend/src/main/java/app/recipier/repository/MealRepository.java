@@ -20,37 +20,14 @@ public class MealRepository {
     }
 
     public List<Meal> getAllBetween(LocalDate from, LocalDate to) {
-        return dsl.select(
-                        Tables.MEAL.ID,
-                        Tables.RECIPE.NAME
-                )
-                .from (Tables.MEAL)
-                .leftJoin(Tables.RECIPE)
-                .onKey(Tables.MEAL.RECIPE_ID)
-                .where(
-                        Tables.MEAL.DATE.greaterOrEqual(from),
-                        Tables.MEAL.DATE.lessOrEqual(to)
-                ).fetch((record) -> new Meal(
-                                record.get(Tables.MEAL.ID),
-                                record.get(Tables.RECIPE.NAME)
-                        )
-                );
+        return
     }
 
     public int delete(int id) {
-        return dsl.deleteFrom(Tables.MEAL)
-                .where(Tables.MEAL.ID.eq(id))
-                .execute();
+        return
     }
 
     public int create(NewMeal newMealRequest) {
-        return Objects.requireNonNull(dsl.insertInto(Tables.MEAL)
-                                .set(Tables.MEAL.DATE, newMealRequest.date())
-                                .set(Tables.MEAL.MEALTIME_ID, newMealRequest.mealtimeId())
-                                .set(Tables.MEAL.RECIPE_ID, newMealRequest.recipeId())
-                                .returning(Tables.MEAL.ID)
-                                .fetchOne(),
-                        "Meal was not created")
-                .getId();
+        return
     }
 }

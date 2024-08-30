@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Serdeable
-public record RecipeWithDetails(
+public record RecipeWithIngredientsAndSteps(
         int id,
         @NotNull String name,
         String description,

@@ -1,7 +1,7 @@
 package app.recipier.controller;
 
 import app.recipier.domain.Recipe;
-import app.recipier.domain.RecipeWithDetails;
+import app.recipier.domain.RecipeWithIngredientsAndSteps;
 import app.recipier.domain.request.NewRecipe;
 import app.recipier.repository.RecipeIngredientRepository;
 import app.recipier.repository.RecipeRepository;
@@ -32,7 +32,7 @@ public class RecipesController {
     }
 
     @Get("/{id}")
-    public RecipeWithDetails get(@PathVariable int id) {
+    public RecipeWithIngredientsAndSteps get(@PathVariable int id) {
         return recipeRepository.getForId(id);
     }
 
