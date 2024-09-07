@@ -7,8 +7,8 @@ datasources:
     url: jdbc:tc:postgresql:16-alpine:///recipier
     driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
 
-## Flyway configuration
-#flyway:
-#  datasources:
-#    default:
-#      enabled: true
+flyway:
+  clean-disabled: false
+  datasources:
+    default:
+      enabled: true
