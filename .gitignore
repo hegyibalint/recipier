@@ -1,17 +1,19 @@
 ### Application ###
 
 # Dev Postgres
-postgres/
+db/
 
-### Gradle ###
+### Backend ###
 .gradle
-build/
+**/build/
 !gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### Node ###
+### Frontend ###
 node_modules/
+recipier-frontend/dist
+
+### AI ###
+repomix-output.xml
 
 ### IntelliJ IDEA ###
 .idea/
