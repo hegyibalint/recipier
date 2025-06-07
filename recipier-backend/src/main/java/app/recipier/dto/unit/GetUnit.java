@@ -4,7 +4,7 @@ public record GetUnit(
         Long id,
         GetUnitType type,
         String name,
-        String abbrevation,
+        String abbreviation,
         String description
 ) {
 }

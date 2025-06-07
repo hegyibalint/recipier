@@ -8,4 +8,3 @@ const fetchClient = createFetchClient<paths>({
 const api = createClient(fetchClient);
 
 export default api;
-export { schemas };

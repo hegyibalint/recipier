@@ -13,7 +13,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @TestPropertySource(properties = "spring.profiles.active=test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public abstract class BaseE2ETest {
+public abstract class AbstractDatabaseTest {
 
     @LocalServerPort
     private int port;
@@ -35,7 +35,7 @@ public abstract class BaseE2ETest {
 
         // Clean up the database before each test to ensure isolation
         jdbi.useHandle(handle -> {
-            handle.execute("TRUNCATE TABLE recipe CASCADE");
+            handle.execute("TRUNCATE TABLE meal, recipe_step, recipe_ingredient, ingredient_conversion, recipe, ingredient, unit, mealtime CASCADE");
         });
     }
 }

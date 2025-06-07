@@ -1,20 +1,24 @@
-import { Route, Switch } from "wouter";
-import UnitsPage from "./pages/UnitsPage";
-import UnitPage from "./pages/UnitPage";
+import { Link, Route, Switch } from "wouter";
+import UnitsPage from "@/pages/UnitsPage.tsx";
+import UnitPageNew from "@/pages/UnitPageNew.tsx";
+import UnitPageExisting from "@/pages/UnitPageExisting.tsx";
+import IngredientsPage from "@/pages/IngredientsPage.tsx";
+import IngredientPageNew from "@/pages/IngredientPageNew.tsx";
+import IngredientPageExisting from "@/pages/IngredientPageExisting.tsx";
 
 const Sidebar = () => {
   return (
     <nav className="h-dvh bg-red-400 flex flex-col">
       <div className="flex-col flex-1">
-        <a className="block" href="/units">
+        <Link className="block" href="/units">
           Units
-        </a>
-        <a className="block" href="/ingredients">
+        </Link>
+        <Link className="block" href="/ingredients">
           Ingredients
-        </a>
-        <a className="block" href="/recipes">
+        </Link>
+        <Link className="block" href="/recipes">
           Recipes
-        </a>
+        </Link>
       </div>
       <div>
         <a href="/settings">Settings</a>
@@ -28,8 +32,8 @@ const Router = () => {
     <main className="flex-1">
       <Switch>
         <Route path="/units" component={UnitsPage} />
-        <Route path="/new-unit" component={UnitPage} />
-        <Route path="/unit/:id" component={UnitPage} />
+        <Route path="/unit/new" component={UnitPageNew} />
+        <Route path="/unit/:id" component={UnitPageExisting} />
       </Switch>
     </main>
   );

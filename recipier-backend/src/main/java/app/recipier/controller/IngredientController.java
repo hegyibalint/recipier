@@ -4,13 +4,13 @@ import app.recipier.dto.ingredient.PostIngredient;
 import app.recipier.dto.ingredient.GetIngredient;
 import app.recipier.dto.ingredient.GetIngredientConversion;
 import app.recipier.dto.ingredient.PostIngredientConversion;
+import app.recipier.dto.ingredient.PutIngredient;
+import app.recipier.dto.ingredient.PutIngredientConversion;
 import org.jdbi.v3.core.Jdbi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -85,7 +85,7 @@ public class IngredientController {
     @PostMapping
     public List<GetIngredient> postIngredient(@RequestBody PostIngredient ingredient) {
         return jdbi.inTransaction(handle -> {
-            var ingredientId = handle.createUpdate("""
+            handle.createUpdate("""
                             INSERT INTO ingredient(name, description)
                             VALUES (:name, :description)
                             RETURNING id""")
@@ -95,6 +95,21 @@ public class IngredientController {
                     .mapTo(Long.class)
                     .one();
             return getIngredients();
+        });
+    }
+
+    @PutMapping
+    public GetIngredient putIngredient(@RequestBody PutIngredient ingredient) {
+        return jdbi.inTransaction(handle -> {
+            handle.createUpdate("""
+                            UPDATE ingredient
+                            SET name = :name, description = :description
+                            WHERE id = :id""")
+                    .bind("id", ingredient.id())
+                    .bind("name", ingredient.name())
+                    .bind("description", ingredient.description())
+                    .execute();
+            return getIngredient(ingredient.id());
         });
     }
 
@@ -150,46 +165,48 @@ public class IngredientController {
         });
     }
 
-    @PostMapping("/conversion")
-    public GetIngredientConversion postIngredientConversion(@RequestBody PostIngredientConversion conversion) {
+    @PostMapping("/{id}/conversions")
+    public GetIngredient postIngredientConversion(@PathVariable Long id, @RequestBody PostIngredientConversion conversion) {
         return jdbi.inTransaction(handle -> {
-            var conversionId = handle.createUpdate("""
-                            INSERT INTO ingredient_conversion(from_unit_id, to_unit_id, factor, description)
-                            VALUES (:fromUnitId, :toUnitId, :factor, :description)
-                            """)
+            handle.createUpdate("""
+                            INSERT INTO ingredient_conversion (from_unit_id, to_unit_id, factor, description)
+                            VALUES (:fromUnitId, :toUnitId, :factor, :description)""")
                     .bind("fromUnitId", conversion.fromUnitId())
                     .bind("toUnitId", conversion.toUnitId())
                     .bind("factor", conversion.factor())
                     .bind("description", conversion.description())
-                    .executeAndReturnGeneratedKeys("id")
-                    .mapTo(Long.class)
-                    .one();
-
-            return new GetIngredientConversion(
-                    conversionId,
-                    conversion.fromUnitId(),
-                    conversion.toUnitId(),
-                    conversion.factor(),
-                    conversion.description()
-            );
+                    .execute();
+            return getIngredient(id);
         });
     }
 
-    @GetMapping("/conversion")
-    public List<GetIngredientConversion> getIngredientConversions() {
-        return jdbi.inTransaction(handle -> handle
-                .createQuery("""
-                        SELECT id, from_unit_id, to_unit_id, factor, description
-                        FROM ingredient_conversion
-                        """)
-                .map((row, ctx) -> new GetIngredientConversion(
-                        row.getLong("id"),
-                        row.getLong("from_unit_id"),
-                        row.getLong("to_unit_id"),
-                        row.getBigDecimal("factor"),
-                        row.getString("description")
-                ))
-                .list());
+    @PutMapping("/{id}/conversions/{conversionId}")
+    public GetIngredient putIngredientConversion(@PathVariable Long id, @PathVariable Long conversionId, @RequestBody PutIngredientConversion conversion) {
+        return jdbi.inTransaction(handle -> {
+            handle.createUpdate("""
+                            UPDATE ingredient_conversion
+                            SET from_unit_id = :fromUnitId, to_unit_id = :toUnitId, factor = :factor, description = :description
+                            WHERE id = :conversionId""")
+                    .bind("conversionId", conversionId)
+                    .bind("fromUnitId", conversion.fromUnitId())
+                    .bind("toUnitId", conversion.toUnitId())
+                    .bind("factor", conversion.factor())
+                    .bind("description", conversion.description())
+                    .execute();
+            return getIngredient(id);
+        });
+    }
+
+    @DeleteMapping("/{id}/conversions/{conversionId}")
+    public GetIngredient deleteIngredientConversion(@PathVariable Long id, @PathVariable Long conversionId) {
+        return jdbi.inTransaction(handle -> {
+            handle.createUpdate("""
+                            DELETE FROM ingredient_conversion
+                            WHERE id = :conversionId""")
+                    .bind("conversionId", conversionId)
+                    .execute();
+            return getIngredient(id);
+        });
     }
 
 }
