@@ -119,4 +119,20 @@ public class UnitControllerTest extends AbstractDatabaseTest {
                 .then()
                 .statusCode(500);
     }
+
+    @Test
+    void postUnit_shouldPreventDuplicateAbbreviations() {
+        PostUnit unit1 = new PostUnit(PostUnitType.VOLUME, "Liter", "L", "First unit");
+        PostUnit unit2 = new PostUnit(PostUnitType.WEIGHT, "Pound", "L", "Second unit");
+
+        given().contentType(ContentType.JSON).body(unit1).post("/unit");
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(unit2)
+                .when()
+                .post("/unit")
+                .then()
+                .statusCode(500);
+    }
 }
