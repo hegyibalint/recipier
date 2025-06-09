@@ -19,8 +19,10 @@ CREATE TABLE ingredient
     id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name        VARCHAR(255) NOT NULL,
     description TEXT,
+    shopping_unit_id INT NOT NULL,
 
-    CONSTRAINT unique_ingredient_name UNIQUE (name)
+    CONSTRAINT unique_ingredient_name UNIQUE (name),
+    FOREIGN KEY (shopping_unit_id) REFERENCES unit (id) ON DELETE SET NULL
 );
 
 CREATE TABLE ingredient_conversion
@@ -66,7 +68,7 @@ CREATE TABLE recipe_step
     description TEXT NOT NULL,
 
     PRIMARY KEY (recipe_id, step_number),
-    FOREIGN KEY (recipe_id) REFERENCES recipe (id)
+    FOREIGN KEY (recipe_id) REFERENCES recipe (id) ON DELETE CASCADE
 );
 
 CREATE TABLE mealtime
