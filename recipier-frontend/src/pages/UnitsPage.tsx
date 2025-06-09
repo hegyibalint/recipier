@@ -16,7 +16,7 @@ const UnitsPage = () => {
   if (unitsQuery.error) {
     return (
       <div className="p-4 text-red-500">
-        Error loading units: {unitsQuery.error.message}
+        Error loading units: {JSON.stringify(unitsQuery.error)}
       </div>
     );
   }

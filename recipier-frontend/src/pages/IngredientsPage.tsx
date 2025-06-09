@@ -16,7 +16,7 @@ const IngredientsPage = () => {
   if (ingredientsQuery.error) {
     return (
       <div className="p-4 text-red-500">
-        Error loading ingredients: {ingredientsQuery.error.message}
+        Error loading ingredients: {JSON.stringify(ingredientsQuery)}
       </div>
     );
   }
