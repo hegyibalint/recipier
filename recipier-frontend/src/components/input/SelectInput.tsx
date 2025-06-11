@@ -2,21 +2,19 @@ import { useCombobox } from "downshift";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/16/solid";
 import { CommonInputProps } from "@/components/input/index.ts";
 
-export interface SelectOption {
-  index: number;
+export interface SelectOption<T> {
   name: string;
   description?: string;
+  value: T
 }
 
-export interface SelectInputProps extends CommonInputProps {
-  options: SelectOption[];
-  selected: number;
-  onChange: (index: number) => void;
+export interface SelectInputProps<T> extends CommonInputProps {
+  options: SelectOption<T>[],
+  selected?: SelectOption<T>,
+  onChange: (newValue: T) => void;
 }
 
-const SelectInput = (props: SelectInputProps) => {
-  const selectedOption = props.options.find(opt => opt.index === props.selected) || null;
-  
+const SelectInput = <T,>(props: SelectInputProps<T>) => {
   const {
     getInputProps,
     getItemProps,
@@ -28,11 +26,11 @@ const SelectInput = (props: SelectInputProps) => {
     selectedItem,
   } = useCombobox({
     items: props.options,
-    selectedItem: selectedOption,
-    itemToString: (item) => (item ? item.name : ""),
+    itemToString: (item) => item?.name || "",
+    selectedItem: props.selected,
     onSelectedItemChange: ({ selectedItem }) => {
       if (selectedItem) {
-        props.onChange(selectedItem.index);
+        props.onChange(selectedItem.value);
       }
     },
   });
@@ -50,17 +48,17 @@ const SelectInput = (props: SelectInputProps) => {
             {...getInputProps()}
             readOnly
             placeholder="Select an option"
-            value={selectedOption?.name || ""}
+            value={props.selected?.name || ""}
           />
           <button
             {...getToggleButtonProps()}
             type="button"
-            style={{ visibility: props.disabled ? 'hidden' : 'visible' }}
+            style={{ visibility: props.disabled ? "hidden" : "visible" }}
           >
             {isOpen ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
           </button>
         </div>
-        <ul {...getMenuProps()} className={`absolute ${!isOpen ? 'hidden' : ''}`}>
+        <ul {...getMenuProps()} className={`absolute ${!isOpen ? "hidden" : ""}`}>
           {isOpen && props.options.map((option, index) => {
             const itemProps = getItemProps({
               index,
@@ -68,7 +66,7 @@ const SelectInput = (props: SelectInputProps) => {
             });
             return (
               <li
-                key={option.index}
+                key={option.name}
                 {...itemProps}
               >
                 <div>
@@ -84,6 +82,6 @@ const SelectInput = (props: SelectInputProps) => {
       </div>
     </div>
   );
-}
+};
 
 export default SelectInput;

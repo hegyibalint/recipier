@@ -166,15 +166,16 @@ export interface components {
             name?: string;
             description?: string;
             conversions?: components["schemas"]["GetIngredientConversion"][];
-            convertedUnits?: number[];
         };
         GetIngredientConversion: {
             /** Format: int64 */
             id?: number;
             /** Format: int64 */
             fromUnitId?: number;
+            fromUnitName?: string;
             /** Format: int64 */
             toUnitId?: number;
+            toUnitName?: string;
             factor?: number;
             description?: string;
         };

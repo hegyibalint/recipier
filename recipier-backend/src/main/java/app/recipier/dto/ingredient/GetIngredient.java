@@ -6,7 +6,6 @@ public record GetIngredient(
         Long id,
         String name,
         String description,
-        List<GetIngredientConversion> conversions,
-        List<Long> convertedUnits
+        List<GetIngredientConversion> conversions
 ) {
 }

@@ -2,20 +2,20 @@ import { FormEvent, useState } from "react";
 import TextInput from "@/components/input/TextInput.tsx";
 import SelectInput, { SelectOption } from "@/components/input/SelectInput.tsx";
 
-export interface UnitSelectOption extends SelectOption {
-  value: "WEIGHT" | "VOLUME" | "QUANTITY";
-}
-export const selectOptions: UnitSelectOption[] = [
-  { index: 1, name: "Weight", description: "Mass-based unit like kilogram, pound", value:"WEIGHT" },
-  { index: 2, name: "Volume", description: "Liquid-based unit like liter, cup", value: "VOLUME" },
-  { index: 3, name: "Quantity", description: "Count-based unit like piece, dozen, carton", value: "QUANTITY" }
+type UnitTypes = "WEIGHT" | "VOLUME" | "QUANTITY";
+
+export const selectOptions: SelectOption<UnitTypes>[] = [
+  { name: "Weight", description: "Mass-based unit like kilogram, pound", value:"WEIGHT" },
+  { name: "Volume", description: "Liquid-based unit like liter, cup", value: "VOLUME" },
+  { name: "Quantity", description: "Count-based unit like piece, dozen, carton", value: "QUANTITY" }
 ];
 
 // The form unit represents the intermediate state of the unit being edited or created
 export interface UnitFormData {
+  id?: number;
   name: string;
   abbreviation: string;
-  typeIndex: number
+  type: "WEIGHT" | "VOLUME" | "QUANTITY";
   description: string;
 }
 
@@ -28,7 +28,7 @@ const UnitForm = (params: UnitFormProps) => {
   const [formData, setFormData] = useState<UnitFormData>(params.initialUnit || {
     name: "",
     abbreviation: "",
-    typeIndex: 1, // Default to first option (Weight)
+    type: "WEIGHT",
     description: ""
   });
 
@@ -55,9 +55,9 @@ const UnitForm = (params: UnitFormProps) => {
         <SelectInput
           label="Unit Type"
           options={selectOptions}
-          selected={formData.typeIndex}
-          onChange={(index) => {
-            setFormData({ ...formData, typeIndex: index });
+          selected={selectOptions.find(option => option.value === formData.type)}
+          onChange={(value) => {
+            setFormData({ ...formData, type: value });
           }}
         />
         <TextInput

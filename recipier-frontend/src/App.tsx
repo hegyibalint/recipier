@@ -32,8 +32,7 @@ const Router = () => {
     <main className="flex-1">
       <Switch>
         <Route path="/units" component={UnitsPage} />
-        <Route path="/unit/new" component={UnitPageNew} />
-        <Route path="/unit/:id" component={UnitPageExisting} />
+        <Route path="/ingredients" component={IngredientsPage} />
       </Switch>
     </main>
   );

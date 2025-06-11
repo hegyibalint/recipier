@@ -1,11 +1,6 @@
 package app.recipier.controller;
 
-import app.recipier.dto.ingredient.PostIngredient;
-import app.recipier.dto.ingredient.GetIngredient;
-import app.recipier.dto.ingredient.GetIngredientConversion;
-import app.recipier.dto.ingredient.PostIngredientConversion;
-import app.recipier.dto.ingredient.PutIngredient;
-import app.recipier.dto.ingredient.PutIngredientConversion;
+import app.recipier.dto.ingredient.*;
 import org.jdbi.v3.core.Jdbi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +32,6 @@ public class IngredientController {
                                     row.getLong("id"),
                                     row.getString("name"),
                                     row.getString("description"),
-                                    List.of(),
                                     List.of()
                             )
                     )
@@ -54,28 +48,25 @@ public class IngredientController {
                     .map((row, ctx) -> new GetIngredientConversion(
                             row.getLong("id"),
                             row.getLong("from_unit_id"),
+                            row.getString("from_unit_name"),
                             row.getLong("to_unit_id"),
+                            row.getString("to_unit_name"),
                             row.getBigDecimal("factor"),
                             row.getString("description")
                     ))
                     .list();
 
-            var conversionsByIngredient = allConversions.stream()
-                    .collect(Collectors.groupingBy(conv -> conv.fromUnitId()));
-
             return ingredients.stream()
                     .map(ingredient -> {
-                        var conversions = conversionsByIngredient.getOrDefault(ingredient.id(), List.of());
-                        var convertedUnits = conversions.stream()
-                                .map(GetIngredientConversion::toUnitId)
-                                .distinct()
-                                .toList();
+                        var conversions = allConversions.stream()
+                                .filter(c -> c.fromUnitId().equals(ingredient.id()) || c.toUnitId().equals(ingredient.id()))
+                                .collect(Collectors.toList());
+
                         return new GetIngredient(
                                 ingredient.id(),
                                 ingredient.name(),
                                 ingredient.description(),
-                                conversions,
-                                convertedUnits
+                                conversions
                         );
                     })
                     .toList();
@@ -116,6 +107,24 @@ public class IngredientController {
     @GetMapping("/{id}")
     public GetIngredient getIngredient(@PathVariable Long id) {
         return jdbi.inTransaction(handle -> {
+            var conversions = handle
+                    .createQuery("""
+                            SELECT ic.id, ic.from_unit_id, ic.to_unit_id, ic.factor, ic.description
+                            FROM ingredient_conversion ic
+                            WHERE ic.from_unit_id = :ingredientId OR ic.to_unit_id = :ingredientId
+                            """)
+                    .bind("ingredientId", id)
+                    .map((row, ctx) -> new GetIngredientConversion(
+                            row.getLong("id"),
+                            row.getLong("from_unit_id"),
+                            row.getString("from_unit_name"),
+                            row.getLong("to_unit_id"),
+                            row.getString("to_unit_name"),
+                            row.getBigDecimal("factor"),
+                            row.getString("description")
+                    ))
+                    .list();
+
             var ingredient = handle
                     .createQuery("""
                             SELECT id, name, description
@@ -128,39 +137,16 @@ public class IngredientController {
                                     row.getLong("id"),
                                     row.getString("name"),
                                     row.getString("description"),
-                                    List.of(),
-                                    List.of()
+                                    conversions
                             )
                     )
                     .one();
-
-            var conversions = handle
-                    .createQuery("""
-                            SELECT ic.id, ic.from_unit_id, ic.to_unit_id, ic.factor, ic.description
-                            FROM ingredient_conversion ic
-                            WHERE ic.from_unit_id = :ingredientId OR ic.to_unit_id = :ingredientId
-                            """)
-                    .bind("ingredientId", id)
-                    .map((row, ctx) -> new GetIngredientConversion(
-                            row.getLong("id"),
-                            row.getLong("from_unit_id"),
-                            row.getLong("to_unit_id"),
-                            row.getBigDecimal("factor"),
-                            row.getString("description")
-                    ))
-                    .list();
-
-            var convertedUnits = conversions.stream()
-                    .map(GetIngredientConversion::toUnitId)
-                    .distinct()
-                    .toList();
 
             return new GetIngredient(
                     ingredient.id(),
                     ingredient.name(),
                     ingredient.description(),
-                    conversions,
-                    convertedUnits
+                    conversions
             );
         });
     }
