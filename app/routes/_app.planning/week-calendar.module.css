@@ -1,0 +1,179 @@
+.calendar {
+  --week-columns: 7rem repeat(7, minmax(0, 1fr));
+  display: grid;
+  gap: 1.25rem;
+}
+
+.dayHeaders, .mealRow {
+  display: grid;
+  grid-template-columns: var(--week-columns);
+  gap: .75rem;
+}
+
+.dayHeaders {
+  align-items: center;
+  padding-bottom: .25rem;
+}
+
+.corner {
+  color: var(--color-muted);
+  font-size: .75rem;
+}
+
+.dayHeader {
+  display: grid;
+  justify-items: center;
+  gap: .2rem;
+  color: var(--color-muted);
+
+  & time {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    color: var(--color-text);
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  &[aria-current] time {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+}
+
+.weekday {
+  font-size: .75rem;
+}
+
+.mealLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .3rem;
+  padding-top: .85rem;
+}
+
+.mealName {
+  font-size: .875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.timeRange {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .15rem;
+  color: var(--color-muted);
+  font-size: .6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dayCell {
+  min-width: 0;
+}
+
+.dayPicker, .selectedDate {
+  display: none;
+}
+
+/* Switch before the sidebar and seven columns squeeze the recipe titles. */
+@media (max-width: 64rem) {
+  .dayPicker {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: .25rem;
+    padding: .35rem;
+    border: var(--border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+  }
+
+  .dayChoice {
+    display: grid;
+    justify-items: center;
+    gap: .25rem;
+    min-width: 0;
+    padding: .6rem .1rem;
+    border-radius: var(--radius);
+    color: var(--color-muted);
+    text-decoration: none;
+    font-size: .6875rem;
+
+    & time {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    &[data-today='true'] time {
+      text-decoration: underline;
+      text-underline-offset: .3em;
+    }
+
+    &:hover {
+      background: var(--color-background);
+    }
+
+    &[aria-current] {
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+    }
+  }
+
+  .selectedDate {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: .5rem;
+    margin-block: 1.5rem;
+
+    & h3 {
+      margin: 0;
+      font-size: .875rem;
+      font-weight: 500;
+    }
+
+    & > span {
+      color: var(--color-muted);
+      font-size: .75rem;
+    }
+  }
+
+  .calendar {
+    gap: 1.5rem;
+  }
+
+  /* Keep column headings available to assistive technology in the day layout. */
+  .dayHeaders {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .mealRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .65rem;
+  }
+
+  .mealLabel {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0;
+  }
+
+  .timeRange {
+    flex-shrink: 0;
+    font-size: .75rem;
+  }
+
+  .dayCell[data-selected='false'], .dayHeader[data-selected='false'] {
+    display: none;
+  }
+}

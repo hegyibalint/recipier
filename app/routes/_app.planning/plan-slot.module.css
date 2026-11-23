@@ -1,0 +1,95 @@
+.slot {
+  display: flex;
+  align-items: flex-start;
+  min-height: 8.5rem;
+  height: 100%;
+  padding: .9rem;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--color-surface-raised);
+  text-decoration: none;
+
+  &[data-empty='true'] {
+    align-items: center;
+    justify-content: center;
+    border-style: dashed;
+    background: color-mix(in srgb, var(--color-surface-raised) 50%, transparent);
+  }
+
+  &:hover, &:focus-visible {
+    border-color: var(--color-border);
+    background: var(--color-surface-raised);
+
+    & .plus {
+      opacity: 0;
+    }
+
+    & .addLabel {
+      opacity: 1;
+    }
+  }
+}
+
+.recipes {
+  display: grid;
+  gap: .65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: .875rem;
+  line-height: 1.5;
+
+  & li {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  & span {
+    color: var(--color-muted);
+    white-space: nowrap;
+    font-size: .75rem;
+  }
+}
+
+.add {
+  display: grid;
+  place-items: center;
+  color: var(--color-muted);
+
+  & > span {
+    grid-area: 1 / 1;
+  }
+}
+
+.plus {
+  font-size: 1.25rem;
+  font-weight: 300;
+}
+
+.addLabel {
+  opacity: 0;
+  font-size: .75rem;
+  text-align: center;
+}
+
+@media (max-width: 64rem), (hover: none) {
+  .plus {
+    display: none;
+  }
+
+  .addLabel {
+    opacity: 1;
+    font-size: .875rem;
+  }
+}
+
+@media (max-width: 64rem) {
+  .slot {
+    min-height: 6.5rem;
+    padding: 1rem;
+  }
+
+  .recipes {
+    font-size: .9375rem;
+  }
+}

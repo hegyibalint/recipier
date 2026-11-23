@@ -1,0 +1,39 @@
+/* Shared visual language. Components consume these tokens, not their own palette. */
+:root {
+  --color-text: #302f2b;
+  --color-background: #faf8f2;
+  --color-surface: #fffdf8;
+  --color-surface-raised: #fff;
+  --color-primary: #383630;
+  --color-on-primary: #fffdf8;
+  --color-primary-hover: color-mix(in srgb, var(--color-primary) 85%, var(--color-surface-raised));
+  --color-link: var(--color-text);
+  --color-muted: #706c62;
+  --color-eyebrow: var(--color-muted);
+  --color-border: var(--color-primary);
+  --color-divider: #dedbd2;
+  --color-danger: #a83425;
+  --color-danger-hover: color-mix(in srgb, var(--color-danger) 85%, var(--color-surface-raised));
+  --color-alert-background: #fff1ed;
+  --color-alert-text: #8d281c;
+  --color-focus: var(--color-primary);
+  --color-backdrop: color-mix(in srgb, var(--color-text) 25%, transparent);
+
+  /* A single hairline edge; never stack an outline to make it heavier. */
+  --border: 1px solid var(--color-border);
+  --border-divider: 1px solid var(--color-divider);
+  --border-on-primary: 1px solid color-mix(in srgb, var(--color-on-primary) 25%, var(--color-primary));
+  /* The planning cards' curve is the default for all rounded surfaces. */
+  --radius: .6rem;
+
+  /* Field focus stays inside its edge; standalone controls retain a focus ring. */
+  --focus-field: inset 0 -2px 0 var(--color-focus);
+  --focus-ring: 2px solid var(--color-focus);
+  --focus-ring-offset: 2px;
+
+  --font-body: system-ui, sans-serif;
+  --font-heading: Georgia, 'Times New Roman', serif;
+  --font-size-body: 1rem;
+  --font-size-heading: 1.5rem;
+  --font-size-title: 2.5rem;
+}

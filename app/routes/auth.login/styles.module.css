@@ -1,0 +1,13 @@
+.panel {
+  max-width: 26rem;
+  margin: 5rem auto;
+
+  & button {
+    width: 100%;
+    margin: .5rem 0;
+  }
+
+  @media (max-width: 36rem) {
+    margin: 2rem auto;
+  }
+}

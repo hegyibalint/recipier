@@ -1,0 +1,10 @@
+.surface {
+  min-width: 0;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--color-surface-raised);
+}
+
+.capsule {
+  border-radius: 999px;
+}

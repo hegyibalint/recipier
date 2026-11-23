@@ -1,0 +1,9 @@
+project_id = "recipier"
+
+[db]
+# The default 54322 is already occupied on our CI runner.
+port = 55432
+
+[db.seed]
+# CI validates migrations against an empty database, without application seed data.
+enabled = false

@@ -1,0 +1,57 @@
+.stepper {
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr) repeat(2, 2.75rem);
+  align-items: stretch;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--color-surface-raised);
+  font-size: var(--font-size-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: .25rem .65rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.action {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font: inherit;
+  font-size: 1.125rem;
+  line-height: 1;
+  text-decoration: none;
+
+  & + .action {
+    border-left: var(--border-on-primary);
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+  }
+
+  &:focus-visible {
+    outline-color: var(--color-on-primary);
+    outline-offset: -4px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 1;
+  }
+}

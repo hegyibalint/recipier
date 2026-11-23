@@ -1,0 +1,50 @@
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 2.5rem;
+  padding: .375rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+
+  &:hover {
+    background: var(--color-background);
+  }
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding-inline: .75rem;
+
+  &:focus-within {
+    box-shadow: var(--focus-field);
+  }
+
+  & svg {
+    flex-shrink: 0;
+    color: var(--color-muted);
+  }
+
+  & input {
+    min-width: 0;
+    min-height: 2.75rem;
+    margin: 0;
+    padding: .375rem 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    font: inherit;
+    outline: none;
+    box-shadow: none;
+
+    &::placeholder {
+      color: var(--color-muted);
+      opacity: 1;
+    }
+  }
+}

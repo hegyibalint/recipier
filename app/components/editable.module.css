@@ -1,0 +1,72 @@
+.display {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+  min-width: 0;
+}
+
+.pencil {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  align-self: center;
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+
+  &:hover { color: var(--color-text); }
+}
+
+.value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.editor {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  overflow: hidden;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--color-surface-raised);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.4;
+
+  &:focus-within {
+    box-shadow: var(--focus-field);
+  }
+
+  & input {
+    box-sizing: border-box;
+    flex: 1;
+    width: 0;
+    min-width: 0;
+    margin: 0;
+    padding: .55rem .75rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    font: inherit;
+    letter-spacing: inherit;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: none;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+}
