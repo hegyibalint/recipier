@@ -5,7 +5,7 @@ import type { Route } from './+types/route';
 import styles from './styles.module.css';
 
 export function meta() {
-  return [{ title: 'Sign in · Recipier' }];
+  return [{ title: 'Sign in · Recipier Invite-Only Beta' }];
 }
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
@@ -28,8 +28,23 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   }
 }
 
+function Introduction() {
+  return (
+    <header>
+      <p className={styles.betaBadge}>Invite-only beta</p>
+      <h1>Your recipes, in one place.</h1>
+      <p>Recipier is only available by invitation. Sign in to see the recipes you’ve saved from ChatGPT.</p>
+    </header>
+  );
+}
+
 export function HydrateFallback() {
-  return <p role="status">Checking your session…</p>;
+  return (
+    <section className={styles.panel}>
+      <Introduction />
+      <p role="status">Checking your session…</p>
+    </section>
+  );
 }
 
 export default function Login({ loaderData, actionData }: Route.ComponentProps) {
@@ -37,9 +52,7 @@ export default function Login({ loaderData, actionData }: Route.ComponentProps) 
   const error = actionData?.error ?? loaderData.error;
   return (
     <section className={styles.panel}>
-      <p className="eyebrow">Recipier</p>
-      <h1>Your recipes, in one place.</h1>
-      <p>Sign in to see the recipes you’ve saved from ChatGPT.</p>
+      <Introduction />
       {error && <p role="alert">{error}</p>}
       <Form method="post" replace aria-busy={busy}>
         <fieldset disabled={busy}>
@@ -52,7 +65,6 @@ export default function Login({ loaderData, actionData }: Route.ComponentProps) 
           <button type="submit">{busy ? 'Signing in…' : 'Sign in'}</button>
         </fieldset>
       </Form>
-      <p className="muted">Use your existing Recipier application account. Signup isn’t available yet.</p>
     </section>
   );
 }
