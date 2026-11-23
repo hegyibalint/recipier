@@ -37,8 +37,7 @@ for the web app and MCP endpoint.
 1. Set up a Supabase project and an app account, then apply the
    [database migrations](specs/database.md).
 2. Fill in your project settings using [`.env.example`](.env.example) and deploy
-   the Worker with `npm run deploy`. The [CI workflow](.github/workflows/ci.yml)
-   runs checks without deploying.
+   the Worker with `npm run deploy` or the [GitHub deployment workflow](specs/deployment.md).
 3. To connect ChatGPT, configure Supabase OAuth with `/auth/connect` as the
    authorization path. Follow the
    [MCP setup guide](specs/mcp.md#self-hosted-mcp-setup) to

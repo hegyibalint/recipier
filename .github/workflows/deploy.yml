@@ -1,0 +1,81 @@
+name: Deploy Worker
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recipier-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    env:
+      SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+      DEMO_USER_ID: ${{ vars.DEMO_USER_ID }}
+      MCP_CLIENT_ID: ${{ vars.MCP_CLIENT_ID }}
+      FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+      MCP_RESOURCE_URL: ${{ format('{0}/mcp', vars.FRONTEND_URL) }}
+      WRANGLER_SEND_METRICS: 'false'
+      DO_NOT_TRACK: '1'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Validate public configuration
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, DEMO_USER_ID, MCP_CLIENT_ID, FRONTEND_URL } = process.env;
+          for (const [name, value] of Object.entries({ SUPABASE_URL, FRONTEND_URL })) {
+            const url = URL.parse(value);
+            assert.ok(url?.protocol === 'https:' && url.origin === value, `${name} must be a canonical HTTPS origin.`);
+          }
+          assert.ok(SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_'), 'Expected a Supabase publishable key.');
+          const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+          assert.ok(uuid.test(DEMO_USER_ID), 'DEMO_USER_ID must be a UUID.');
+          assert.ok(uuid.test(MCP_CLIENT_ID), 'MCP_CLIENT_ID must be a UUID.');
+          assert.ok(MCP_CLIENT_ID !== '00000000-0000-4000-8000-000000000002', 'Use the registered OAuth client, not the test fixture.');
+          JS
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+      - name: Dry-run the built Worker
+        run: npx --no-install wrangler deploy --config .cache/build/server/wrangler.json --dry-run
+      - name: Deploy the tested Worker
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          : "${CLOUDFLARE_ACCOUNT_ID:?Set CLOUDFLARE_ACCOUNT_ID in the production environment}"
+          : "${CLOUDFLARE_API_TOKEN:?Set CLOUDFLARE_API_TOKEN in the production environment}"
+          npx --no-install wrangler deploy --config .cache/build/server/wrangler.json --message "GitHub Actions ${GITHUB_SHA}"
+      - name: Smoke-test the app and MCP discovery
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const { FRONTEND_URL, SUPABASE_URL, MCP_RESOURCE_URL } = process.env;
+          const metadataUrl = `${FRONTEND_URL}/.well-known/oauth-protected-resource/mcp`;
+          const request = url => fetch(url, { redirect: 'error', signal: AbortSignal.timeout(20_000) });
+          assert.equal((await request(`${FRONTEND_URL}/`)).status, 200);
+          const discovery = await request(metadataUrl);
+          assert.equal(discovery.status, 200);
+          const metadata = await discovery.json();
+          assert.equal(metadata.resource, MCP_RESOURCE_URL);
+          assert.deepEqual(metadata.authorization_servers, [`${SUPABASE_URL}/auth/v1`]);
+          const response = await request(MCP_RESOURCE_URL);
+          assert.equal(response.status, 401);
+          assert.equal(response.headers.get('WWW-Authenticate'), `Bearer resource_metadata="${metadataUrl}"`);
+          JS
