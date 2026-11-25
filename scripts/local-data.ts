@@ -91,6 +91,6 @@ export const localRecipes: Recipe[] = [
 
 export const localRecipeId = (index: number) => `91000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`;
 export const localMealtimes = [
-  { id: '92000000-0000-4000-8000-000000000001', name: 'Breakfast', starts_at: '07:00', ends_at: '09:00' },
-  { id: '92000000-0000-4000-8000-000000000002', name: 'Dinner', starts_at: '18:00', ends_at: '20:00' },
+  { id: '92000000-0000-4000-8000-000000000001', name: 'Breakfast' },
+  { id: '92000000-0000-4000-8000-000000000002', name: 'Dinner' },
 ];

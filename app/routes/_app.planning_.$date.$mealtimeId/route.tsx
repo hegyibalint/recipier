@@ -93,8 +93,7 @@ export default function MealSlot({ loaderData, actionData }: Route.ComponentProp
       </nav>
       <header className={styles.intro}>
         <h1 className={`page-title ${styles.title}`}>{meal?.name ?? 'Meal slot'}</h1>
-        {date && <p><time dateTime={date}>{dateLabel.format(calendarDate(date))}</time>
-          {meal && <> · {meal.starts_at}–{meal.ends_at}</>}</p>}
+        {date && <p><time dateTime={date}>{dateLabel.format(calendarDate(date))}</time></p>}
       </header>
       {actionData?.error && <p role="alert">{actionData.error}</p>}
       {error ? (

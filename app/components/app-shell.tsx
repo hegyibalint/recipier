@@ -5,7 +5,6 @@ import styles from './app-shell.module.css';
 
 const destinations = [
   { to: '/', label: 'Recipes' },
-  { to: '/meals', label: 'Meals' },
   { to: '/planning', label: 'Planning' },
   { to: '/shopping-list', label: 'Shopping list' },
 ];

@@ -13,7 +13,7 @@ const mealId = '00000000-0000-4000-8000-000000000001';
 const recipeId = '00000000-0000-4000-8000-000000000002';
 const entryId = '00000000-0000-4000-8000-000000000003';
 const params = { date: '2026-11-06', mealtimeId: mealId };
-const meal = { id: mealId, name: 'Lunch', starts_at: '12:00', ends_at: '13:00', created_at: '', planned_meals_count: 1 };
+const meal = { id: mealId, name: 'Lunch', position: 1, created_at: '', planned_meals_count: 1 };
 const recipe = { id: recipeId, title: 'Garlic soup', subtitle: 'A comforting bowl' };
 const entry = { id: entryId, date: params.date, mealtime_id: mealId, recipe_id: recipeId, multiplier: 1, created_at: '' };
 const data = { date: params.date, meal, entries: [], recipes: [recipe], error: undefined, notFound: false };
@@ -105,7 +105,7 @@ test('a standalone page gives date/time context, search, recipe previews, and ex
   assert.match(html, /href="\/planning\?week=2026-11-02&amp;day=2026-11-06"/);
   assert.match(html, /<h1[^>]*>Lunch<\/h1>/);
   assert.match(html, /dateTime="2026-11-06"/);
-  assert.match(html, /12:00–13:00/);
+  assert.doesNotMatch(html, /12:00–13:00/);
   assert.match(html, /type="search"/);
   assert.match(html, /href="\/recipes\/00000000-0000-4000-8000-000000000002"/);
   assert.match(html, /A comforting bowl/);

@@ -13,21 +13,15 @@ export const dateRangeSchema = z.strictObject({
 export type DateRange = z.infer<typeof dateRangeSchema>;
 
 export const idSchema = z.uuid();
-const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(:00)?$/, 'Expected HH:MM or HH:MM:00.')
-  .transform(value => value.slice(0, 5));
-const mealtimeFields = {
-  name: z.string().refine(value => value.trim().length > 0, 'Name must not be blank.'),
-  starts_at: timeSchema,
-  ends_at: timeSchema,
-};
-const validWindow = (value: { starts_at?: string; ends_at?: string }) =>
-  !value.starts_at || !value.ends_at || value.starts_at < value.ends_at;
-const windowError = { path: ['ends_at'], message: 'Expected starts_at < ends_at within the same day.' };
 const nonempty = (value: object) => Object.keys(value).length > 0;
 
-export const createMealtimeSchema = z.strictObject(mealtimeFields).refine(validWindow, windowError);
-export const updateMealtimeSchema = z.strictObject(mealtimeFields).partial()
-  .refine(nonempty, 'Provide at least one field.').refine(validWindow, windowError);
+export const createMealtimeSchema = z.strictObject({
+  name: z.string().trim().min(1, 'Name must not be blank.'),
+});
+export const updateMealtimeSchema = createMealtimeSchema;
+export const reorderMealtimesSchema = z.strictObject({
+  ids: z.array(idSchema).refine(ids => new Set(ids.map(id => id.toLowerCase())).size === ids.length, 'Meal time IDs must be unique.'),
+});
 
 const entryFields = {
   date: dateSchema,

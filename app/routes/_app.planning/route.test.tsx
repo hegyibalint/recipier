@@ -5,15 +5,21 @@ import { afterEach, test, vi } from 'vitest';
 import { navigation, renderWithRouter } from '../../../tests/support/router';
 import { calendarWeek, localDate } from '../../lib/planning/calendar';
 import { loadPlanning } from '../../lib/planning/overview.client';
-import Planning, { clientLoader, handle, HydrateFallback, shouldRevalidate } from './route';
+import { deleteMealtime, reorderMealtimes, saveMealtime } from '../../lib/planning/mealtimes.client';
+import Planning, { clientAction, clientLoader, handle, HydrateFallback, shouldRevalidate } from './route';
+import { MealtimeControls } from './mealtime-controls';
 import type { Route } from './+types/route';
 
 vi.mock('../../lib/planning/overview.client', () => ({ loadPlanning: vi.fn() }));
 
+vi.mock('../../lib/planning/mealtimes.client', () => ({
+  deleteMealtime: vi.fn(), reorderMealtimes: vi.fn(), saveMealtime: vi.fn(),
+}));
+
 const today = '2026-11-06';
 const week = calendarWeek(today, today);
-const breakfast = { id: 'breakfast', name: 'Breakfast', starts_at: '09:00', ends_at: '10:00', created_at: '', planned_meals_count: 0 };
-const lunch = { id: 'lunch', name: 'Lunch', starts_at: '12:15', ends_at: '12:45', created_at: '', planned_meals_count: 0 };
+const breakfast = { id: 'breakfast', name: 'Breakfast', position: 1, created_at: '', planned_meals_count: 0 };
+const lunch = { id: 'lunch', name: 'Lunch', position: 2, created_at: '', planned_meals_count: 0 };
 const planning = { mealtimes: [breakfast, lunch], entries: [], recipes: [], error: undefined };
 const loaderData = { week, today, ...planning };
 
@@ -83,21 +89,32 @@ test('slots link to a full page and show all assigned recipes only in their date
   assert.match(html, /Breakfast, 2026-11-02: Add recipe/);
 });
 
-test('compact 24-hour ranges sit with their meal labels, not on a separate time axis', () => {
-  const html = render();
-  for (const time of ['09:00', '10:00', '12:15', '12:45']) {
-    assert.match(html, new RegExp(`<time dateTime="${time}">${time}</time>`));
-  }
-  assert.match(html, /role="rowheader"><span class="mealName">Lunch<\/span><span class="timeRange"><time dateTime="12:15">12:15<\/time><span aria-hidden="true">–<\/span><time dateTime="12:45">12:45<\/time><\/span><\/div>/);
-  assert.doesNotMatch(html, /timeHeader/);
-  assert.doesNotMatch(html, /AM|PM/);
+test('the matrix renders meal rows in saved order without clock times or edit controls by default', () => {
+  const html = render({ ...loaderData, mealtimes: [{ ...lunch, position: 1 }, { ...breakfast, position: 2 }] });
+  assert.ok(html.indexOf('mealName">Lunch') < html.indexOf('mealName">Breakfast'));
+  assert.doesNotMatch(html, /dateTime="\d{2}:\d{2}"|Move Lunch|Rename Lunch|Delete Lunch/);
+  assert.match(html, /aria-pressed="false">Edit rows/);
+  assert.match(html, /<button[^>]*aria-haspopup="dialog"[^>]*><span aria-hidden="true">\+ <\/span>Add meal time/);
+});
+
+test('row controls expose boundary state and explain deletion impact', () => {
+  const html = renderWithRouter(createElement(MealtimeControls, {
+    meal: { ...breakfast, planned_meals_count: 2 }, busy: false, first: true, last: false,
+    onMove() {}, onRename() {},
+  }));
+  assert.match(html, /aria-label="Move Breakfast up" aria-disabled="true"/);
+  assert.match(html, /aria-label="Move Breakfast down" aria-disabled="false"/);
+  assert.match(html, /aria-label="Rename Breakfast"/);
+  assert.match(html, /Deleting this meal time will also remove 2 planned meals across your plan/);
+  assert.match(html, /Your recipes will be kept/);
 });
 
 test('navigation links preserve the selected week and work across year boundaries', () => {
   const html = render({ ...loaderData, week: calendarWeek('2027-01-01', today) });
   assert.match(html, /<a(?=[^>]*href="\/planning\?week=2026-12-21")(?=[^>]*aria-label="Previous week")[^>]*>/);
   assert.match(html, /<a(?=[^>]*href="\/planning\?week=2027-01-04")(?=[^>]*aria-label="Next week")[^>]*>/);
-  assert.match(html, /aria-label="Planning actions"><a[^>]*href="\/meals"[^>]*>Edit mealtimes<\/a><span aria-hidden="true">\/<\/span><a[^>]*href="\/planning"[^>]*>Go to current week<\/a>/);
+  assert.match(html, /<a[^>]*href="\/planning"[^>]*>Go to current week<\/a>/);
+  assert.doesNotMatch(html, /href="\/meals"/);
 });
 
 test('today is marked in the desktop header and the compact day picker, never in meal cells', () => {
@@ -141,15 +158,32 @@ test('changing only the compact day reuses week data, while week changes, writes
   assert.equal(revalidate('/planning?day=2026-11-04', '/planning?day=2026-11-04', { defaultShouldRevalidate: false }), false);
 });
 
-test('empty state links to meal setup; failed loads offer retry rather than an empty calendar', () => {
+test('empty state offers inline meal setup; failed loads offer retry rather than an empty calendar', () => {
   const html = render({ ...loaderData, mealtimes: [] });
   assert.match(html, /Give your week a rhythm/);
-  assert.match(html, /href="\/meals"[^>]*>Set up meal times/);
+  assert.match(html, /aria-haspopup="dialog"[^>]*><span aria-hidden="true">\+ <\/span>Add meal time/);
+  assert.doesNotMatch(html, /Edit rows/);
   assert.doesNotMatch(html, /role="table"/);
   const error = render({ ...loaderData, mealtimes: [], error: 'Please try again.' });
   assert.match(error, /role="alert">Please try again/);
   assert.match(error, /Try again/);
   assert.doesNotMatch(error, /Give your week a rhythm|role="table"/);
+});
+
+test('planning handles meal row mutations in place', async () => {
+  const act = (fields: [string, string][]) => clientAction({
+    request: new Request('http://localhost/planning?week=2026-11-02&day=2026-11-06', {
+      method: 'POST', body: new URLSearchParams(fields),
+    }),
+  } as Route.ClientActionArgs);
+  await act([['intent', 'create'], ['name', 'Breakfast']]);
+  await act([['intent', 'update'], ['id', 'breakfast'], ['name', 'Brunch']]);
+  await act([['intent', 'delete'], ['id', 'lunch']]);
+  await act([['intent', 'reorder'], ['ids', 'lunch'], ['ids', 'breakfast']]);
+  assert.deepEqual(vi.mocked(saveMealtime).mock.calls, [[null, { name: 'Breakfast' }], ['breakfast', { name: 'Brunch' }]]);
+  assert.deepEqual(vi.mocked(deleteMealtime).mock.calls, [['lunch']]);
+  assert.deepEqual(vi.mocked(reorderMealtimes).mock.calls, [[['lunch', 'breakfast']]]);
+  assert.deepEqual(await act([['intent', 'update']]), { error: 'This meal time isn’t available.' });
 });
 
 test('loading and pending states are accessible', () => {

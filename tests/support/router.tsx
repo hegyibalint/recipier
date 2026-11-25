@@ -16,6 +16,7 @@ vi.mock('react-router', async importOriginal => {
     ...actual,
     Form: ({ children, replace: _replace, preventScrollReset: _preventScrollReset, ...props }: FormProps) => createElement('form', props, children),
     useNavigation: () => state,
+    useSubmit: () => vi.fn(),
     useRevalidator: () => ({ state: 'idle', revalidate() {} }),
   };
 });

@@ -37,6 +37,6 @@ test('database constraints and protected references produce safe 400/409 respons
   assert.equal(response.status, 409);
   assert.doesNotMatch(await response.text(), /private SQL/);
   code = '23514';
-  response = await handler.request({ method: 'PATCH', payload: { ends_at: '10:00' }, params: { id } });
+  response = await handler.request({ method: 'PATCH', payload: { name: 'Lunch' }, params: { id } });
   assert.equal(response.status, 400);
 });

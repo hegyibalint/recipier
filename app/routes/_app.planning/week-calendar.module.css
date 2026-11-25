@@ -62,15 +62,6 @@
   overflow-wrap: anywhere;
 }
 
-.timeRange {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .15rem;
-  color: var(--color-muted);
-  font-size: .6875rem;
-  font-variant-numeric: tabular-nums;
-}
-
 .dayCell {
   min-width: 0;
 }
@@ -163,14 +154,10 @@
   .mealLabel {
     flex-direction: row;
     justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem;
     padding: 0;
-  }
-
-  .timeRange {
-    flex-shrink: 0;
-    font-size: .75rem;
   }
 
   .dayCell[data-selected='false'], .dayHeader[data-selected='false'] {

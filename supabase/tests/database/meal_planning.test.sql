@@ -16,9 +16,9 @@ from (values
   ('10000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000002'),
   ('10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000001')
 ) recipe(id, owner);
-insert into public.mealtimes (id, user_id, name, starts_at, ends_at) values
-  ('20000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000001', 'Dinner', '19:00', '20:00'),
-  ('20000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000002', 'Lunch', '12:00', '13:00');
+insert into public.mealtimes (id, user_id, name) values
+  ('20000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000001', 'Dinner'),
+  ('20000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000002', 'Lunch');
 insert into public.meal_plan_entries (id, user_id, date, mealtime_id, recipe_id)
 select entry.id::uuid, '00000000-0000-4000-8000-000000000001', entry.day::date,
   '20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001'
@@ -47,13 +47,28 @@ select throws_ok($$select * from get_meal_plan('2026-11-09', null)$$, '22023', n
 select throws_ok($$select * from get_meal_plan('-infinity', '2026-11-16')$$, '22023', null, 'Non-calendar from is rejected');
 select throws_ok($$select * from get_meal_plan('2026-11-09', 'infinity')$$, '22023', null, 'Non-calendar to is rejected');
 
-select lives_ok($$insert into mealtimes (id, name, starts_at, ends_at)
-  values ('20000000-0000-4000-8000-000000000003', 'Breakfast', '08:00', '09:00')$$, 'Owners can create mealtimes');
+select lives_ok($$insert into mealtimes (id, name)
+  values ('20000000-0000-4000-8000-000000000003', 'Breakfast')$$, 'Owners can create mealtimes');
 select is((select user_id from mealtimes where id = '20000000-0000-4000-8000-000000000003'),
   '00000000-0000-4000-8000-000000000001'::uuid, 'Mealtime ownership defaults to the JWT user');
-select lives_ok($$update mealtimes set name = 'Brunch', starts_at = '09:00', ends_at = '10:00'
+select lives_ok($$update mealtimes set name = 'Brunch'
   where id = '20000000-0000-4000-8000-000000000003'$$, 'Owners can update mealtimes');
 select is((select name from mealtimes where id = '20000000-0000-4000-8000-000000000003'), 'Brunch', 'Mealtime update persists');
+select is((select position from mealtimes where name = 'Brunch'), 2, 'New rows append to the owner list');
+select lives_ok($$select reorder_mealtimes(array[
+  '20000000-0000-4000-8000-000000000003', '20000000-0000-4000-8000-000000000001']::uuid[])$$,
+  'The owner can swap mealtime positions atomically');
+select throws_ok($$select reorder_mealtimes(array[
+  '20000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000002']::uuid[])$$,
+  'PT409', null, 'Another owner row cannot be included');
+select throws_ok($$select reorder_mealtimes(array[
+  '20000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001']::uuid[])$$,
+  'PT409', null, 'Duplicate rows cannot be included');
+select throws_ok($$select reorder_mealtimes(array['20000000-0000-4000-8000-000000000001']::uuid[])$$,
+  'PT409', null, 'A stale order that omits rows is rejected');
+select is((select array_agg(name order by position) from mealtimes), array['Brunch', 'Dinner'], 'Rejected reorder does not change positions');
+select is((select count(*) from meal_plan_entries where mealtime_id = '20000000-0000-4000-8000-000000000001'),
+  4::bigint, 'Moving Dinner leaves all Dinner assignments intact');
 select lives_ok($$delete from mealtimes where id = '20000000-0000-4000-8000-000000000003'$$, 'Unused mealtimes can be deleted');
 select is((select count(*) from mealtimes), 1::bigint, 'Deleted mealtime is gone');
 
@@ -70,19 +85,15 @@ select is((select multiplier from meal_plan_entries where id = '30000000-0000-40
 select lives_ok($$delete from meal_plan_entries where id = '30000000-0000-4000-8000-000000000006'$$, 'Owners can remove entries');
 select is((select count(*) from meal_plan_entries), 4::bigint, 'Removed entry is gone');
 
-select throws_ok($$insert into mealtimes (name, starts_at, ends_at) values (' ', '19:00', '20:00')$$, '23514', null, 'Blank names are rejected');
-select throws_ok($$insert into mealtimes (name, starts_at, ends_at) values ('Dinner', '20:00', '19:00')$$, '23514', null, 'Reversed windows are rejected');
-select throws_ok($$insert into mealtimes (name, starts_at, ends_at) values ('Dinner', '19:00', '19:00')$$, '23514', null, 'Empty windows are rejected');
-select throws_ok($$insert into mealtimes (name, starts_at, ends_at) values ('Dinner', '19:00:01', '20:00')$$, '23514', null, 'Windows use minute precision');
-select throws_ok($$insert into mealtimes (name, starts_at, ends_at) values ('Dinner', '19:00', '24:00')$$, '23514', null, 'Times stay within a calendar day');
+select throws_ok($$insert into mealtimes (name) values (' ')$$, '23514', null, 'Blank names are rejected');
 select throws_ok($$update meal_plan_entries set multiplier = 0 where id = '30000000-0000-4000-8000-000000000002'$$, '23514', null, 'Zero multiplier is rejected');
 select throws_ok($$update meal_plan_entries set multiplier = -1 where id = '30000000-0000-4000-8000-000000000002'$$, '23514', null, 'Negative multiplier is rejected');
 select throws_ok($$update meal_plan_entries set multiplier = 'Infinity' where id = '30000000-0000-4000-8000-000000000002'$$, '23514', null, 'Infinite multiplier is rejected');
 select throws_ok($$update meal_plan_entries set multiplier = 'NaN' where id = '30000000-0000-4000-8000-000000000002'$$, '23514', null, 'NaN multiplier is rejected');
 select throws_ok($$update meal_plan_entries set date = 'infinity' where id = '30000000-0000-4000-8000-000000000002'$$, '23514', null, 'Entry dates must be calendar dates');
 
-select throws_ok($$insert into mealtimes (user_id, name, starts_at, ends_at)
-  values ('00000000-0000-4000-8000-000000000002', 'Forged', '19:00', '20:00')$$, '42501', null, 'Mealtime ownership cannot be forged');
+select throws_ok($$insert into mealtimes (user_id, name)
+  values ('00000000-0000-4000-8000-000000000002', 'Forged')$$, '42501', null, 'Mealtime ownership cannot be forged');
 select throws_ok($$insert into meal_plan_entries (user_id, date, mealtime_id, recipe_id)
   values ('00000000-0000-4000-8000-000000000002', '2026-11-10',
     '20000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002')$$, '42501', null, 'Entry ownership cannot be forged');
@@ -107,7 +118,9 @@ select throws_ok($$delete from recipes where id = '10000000-0000-4000-8000-00000
 -- OAuth clients retain no planning-write capability.
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated","client_id":"chatgpt"}';
 select is((select count(*) from get_meal_plan('2026-11-09', '2026-11-16')), 2::bigint, 'Owner reads remain available under RLS');
-select throws_ok($$insert into mealtimes (name, starts_at, ends_at) values ('Forbidden', '19:00', '20:00')$$, '42501', null, 'OAuth clients cannot create mealtimes');
+select throws_ok($$select reorder_mealtimes(array['20000000-0000-4000-8000-000000000001']::uuid[])$$,
+  '42501', null, 'OAuth clients cannot reorder mealtimes');
+select throws_ok($$insert into mealtimes (name) values ('Forbidden')$$, '42501', null, 'OAuth clients cannot create mealtimes');
 select throws_ok($$insert into meal_plan_entries (date, mealtime_id, recipe_id)
   values ('2026-11-10', '20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001')$$, '42501', null, 'OAuth clients cannot create entries');
 with changed as (update mealtimes set name = 'Forbidden' returning *)
@@ -124,14 +137,14 @@ set local request.jwt.claims = '{}';
 select throws_ok($$select * from mealtimes$$, '42501', null, 'Anonymous users cannot read mealtimes');
 select throws_ok($$select * from meal_plan_entries$$, '42501', null, 'Anonymous users cannot read entries');
 select throws_ok($$select * from get_meal_plan('2026-11-09', '2026-11-16')$$, '42501', null, 'Anonymous users cannot invoke range queries');
-select throws_ok($$insert into mealtimes (name, starts_at, ends_at) values ('Forbidden', '19:00', '20:00')$$, '42501', null, 'Anonymous users cannot write');
+select throws_ok($$insert into mealtimes (name) values ('Forbidden')$$, '42501', null, 'Anonymous users cannot write');
 
 -- Browser deletion removes every assignment to the selected mealtime, including
 -- past/future dates and repeated recipes, but preserves recipes and other slots.
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated"}';
-insert into mealtimes (id, name, starts_at, ends_at)
-  values ('20000000-0000-4000-8000-000000000004', 'Breakfast', '08:00', '09:00');
+insert into mealtimes (id, name)
+  values ('20000000-0000-4000-8000-000000000004', 'Breakfast');
 insert into meal_plan_entries (id, date, mealtime_id, recipe_id) values
   ('30000000-0000-4000-8000-000000000007', '2026-11-10',
    '20000000-0000-4000-8000-000000000004', '10000000-0000-4000-8000-000000000001'),

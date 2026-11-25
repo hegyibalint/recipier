@@ -1,8 +1,9 @@
 import { Link, useSearchParams } from 'react-router';
 import type { PlanEntry } from '../../lib/planning/entries.client';
 import type { RecipeChoice } from '../../lib/recipes/choices.client';
-import type { Mealtime } from '../../lib/planning/mealtimes.client';
+import type { MealtimeWithUsage } from '../../lib/planning/mealtimes.client';
 import { calendarDate, type CalendarWeek } from '../../lib/planning/calendar';
+import { MealtimeControls } from './mealtime-controls';
 import { PlanSlot } from './plan-slot';
 import styles from './week-calendar.module.css';
 
@@ -10,12 +11,17 @@ const weekday = new Intl.DateTimeFormat(undefined, { weekday: 'short', timeZone:
 const dayNumber = new Intl.DateTimeFormat(undefined, { day: 'numeric', timeZone: 'UTC' });
 const fullDate = new Intl.DateTimeFormat(undefined, { dateStyle: 'full', timeZone: 'UTC' });
 
-export function WeekCalendar({ week, today, mealtimes, entries, recipes }: {
+export function WeekCalendar({ week, today, mealtimes, entries, recipes, rowEditing }: {
   week: CalendarWeek;
   today: string;
-  mealtimes: Mealtime[];
+  mealtimes: MealtimeWithUsage[];
   entries: PlanEntry[];
   recipes: RecipeChoice[];
+  rowEditing?: {
+    busy: boolean;
+    moveRow: (index: number, step: -1 | 1) => void;
+    rename: (meal: MealtimeWithUsage) => void;
+  };
 }) {
   const [search] = useSearchParams();
   const requestedDay = search.get('day');
@@ -56,15 +62,13 @@ export function WeekCalendar({ week, today, mealtimes, entries, recipes }: {
             </div>
           ))}
         </div>
-        {mealtimes.map(meal => (
+        {mealtimes.map((meal, index) => (
           <div key={meal.id} className={styles.mealRow} role="row">
             <div className={styles.mealLabel} role="rowheader">
               <span className={styles.mealName}>{meal.name}</span>
-              <span className={styles.timeRange}>
-                <time dateTime={meal.starts_at}>{meal.starts_at}</time>
-                <span aria-hidden="true">–</span>
-                <time dateTime={meal.ends_at}>{meal.ends_at}</time>
-              </span>
+              {rowEditing && <MealtimeControls meal={meal} busy={rowEditing.busy} first={index === 0}
+                last={index === mealtimes.length - 1} onMove={step => rowEditing.moveRow(index, step)}
+                onRename={() => rowEditing.rename(meal)} />}
             </div>
             {week.days.map(day => (
               <div key={day} className={styles.dayCell} role="cell" data-selected={day === selectedDay}>

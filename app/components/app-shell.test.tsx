@@ -3,13 +3,14 @@ import { test } from 'vitest';
 import { renderWithRouter } from '../../tests/support/router';
 import { AppShell } from './app-shell';
 
-test('the shell provides all four destinations with one active link', () => {
+test('the shell provides all three destinations with one active link', () => {
   const html = renderWithRouter(<AppShell>Page content</AppShell>);
   assert.match(html, /aria-label="Primary"/);
-  for (const [path, label] of [['/', 'Recipes'], ['/meals', 'Meals'], ['/planning', 'Planning'], ['/shopping-list', 'Shopping list']]) {
+  for (const [path, label] of [['/', 'Recipes'], ['/planning', 'Planning'], ['/shopping-list', 'Shopping list']]) {
     assert.ok(html.includes('href="' + path + '"'));
     assert.ok(html.includes('>' + label + '</a>'));
   }
+  assert.doesNotMatch(html, /href="\/meals"/);
   assert.equal((html.match(/aria-current="page"/g) ?? []).length, 1);
   assert.match(html, /<main[^>]*id="main-content"/);
   assert.match(html, /href="#main-content"/);

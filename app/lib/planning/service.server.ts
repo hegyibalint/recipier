@@ -5,7 +5,7 @@ import { parseRecipe } from '../recipes/validate.ts';
 import { dateRangeSchema, type CreateEntry, type CreateMealtime, type DateRange, type UpdateEntry, type UpdateMealtime } from './schema.ts';
 import { ingredientsForRecipe } from './shopping-list.ts';
 
-const mealtimeColumns = 'id,name,starts_at,ends_at,created_at';
+const mealtimeColumns = 'id,name,position,created_at';
 const entryColumns = 'id,date,mealtime_id,recipe_id,multiplier,created_at';
 const mealtimeUsageSchema = z.looseObject({
   planned_meals: z.array(z.object({ count: z.number().int().nonnegative() })).length(1),
@@ -29,7 +29,7 @@ export function planningService(database: SupabaseClient, userId: string) {
     listMealtimes: async () => {
       const rows = await allRows((start, end) => database.from('mealtimes')
         .select(`${mealtimeColumns},planned_meals:meal_plan_entries!meal_plan_entries_mealtime_owner_fkey(count)`, { count: 'exact' })
-        .eq('user_id', userId).order('starts_at').order('id').range(start, end));
+        .eq('user_id', userId).order('position').order('id').range(start, end));
       return rows.map(row => {
         const { planned_meals, ...mealtime } = mealtimeUsageSchema.parse(row);
         return { ...mealtime, planned_meals_count: planned_meals[0].count };
@@ -41,6 +41,14 @@ export function planningService(database: SupabaseClient, userId: string) {
 
     updateMealtime: (id: string, input: UpdateMealtime) => changedRow(database.from('mealtimes')
       .update(input).eq('user_id', userId).eq('id', id).select(mealtimeColumns).maybeSingle()),
+
+    reorderMealtimes: async (ids: string[]) => {
+      const { error } = await database.rpc('reorder_mealtimes', { mealtime_ids: ids });
+      if (error?.code === 'PT409') {
+        throw new ApiError(409, 'mealtime_order_conflict', 'The meal time list has changed.');
+      }
+      checkError(error);
+    },
 
     deleteMealtime: async (id: string) => {
       await changedRow(database.from('mealtimes').delete()

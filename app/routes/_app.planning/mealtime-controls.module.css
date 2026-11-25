@@ -1,0 +1,69 @@
+.add {
+  margin-top: 1.25rem;
+}
+
+.toggle, .rowActions button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: .2em;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: .55;
+    cursor: default;
+  }
+}
+
+.toggle {
+  min-height: 2.75rem;
+  white-space: nowrap;
+  text-decoration-color: var(--color-divider);
+
+  &:hover, &[aria-pressed='true'] {
+    color: var(--color-text);
+    text-decoration-color: currentColor;
+  }
+}
+
+.controls, .rowActions, .arrows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.controls {
+  margin-top: .25rem;
+  align-items: center;
+}
+
+.arrows button {
+  padding: 0;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+
+  &[aria-disabled='true'] {
+    opacity: .45;
+    cursor: default;
+  }
+}
+
+.rowActions {
+  font-size: .75rem;
+
+  & button {
+    min-height: 1.5rem;
+  }
+}
+
+.editor label {
+  display: grid;
+  gap: .4rem;
+
+  & input {
+    width: 100%;
+  }
+}

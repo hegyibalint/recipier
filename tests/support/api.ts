@@ -15,7 +15,7 @@ export const config = { ...settings.current };
 export const owner = config.userId;
 export const id = '00000000-0000-4000-8000-000000000002';
 export const range = { from: '2026-11-09', to: '2026-11-16' };
-export const meal = { name: 'Dinner', starts_at: '18:00', ends_at: '20:00' };
+export const meal = { name: 'Dinner', position: 1 };
 export const entry = { date: range.from, mealtime_id: id, recipe_id: id };
 export const recipe: Recipe = {
   title: 'Garlic soup', subtitle: 'Garlic three ways', description: 'A garlicky soup.',

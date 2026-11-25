@@ -11,6 +11,7 @@ type ConfirmDeleteProps = {
   details?: ReactNode;
   fields?: Record<string, string>;
   disabled?: boolean;
+  preventScrollReset?: boolean;
   className?: string;
   'aria-label'?: string;
 };
@@ -18,7 +19,7 @@ type ConfirmDeleteProps = {
 /** A separate POST form, so an invalid edit draft never blocks deletion. */
 export function ConfirmDelete({ itemName, children, actionLabel = 'Delete',
   description = 'This will permanently delete it. This cannot be undone.', details, fields = {}, disabled,
-  className, 'aria-label': ariaLabel }: ConfirmDeleteProps) {
+  className, preventScrollReset, 'aria-label': ariaLabel }: ConfirmDeleteProps) {
   const [open, setOpen] = useState(false);
   const cancel = useRef<HTMLButtonElement>(null);
   const formId = `${useId()}-delete-form`;
@@ -33,7 +34,7 @@ export function ConfirmDelete({ itemName, children, actionLabel = 'Delete',
           disabled={disabled}>{actionLabel}</Button>
       </>}>
       {details}
-      <Form id={formId} method="post" replace onSubmit={() => setOpen(false)}>
+      <Form id={formId} method="post" replace preventScrollReset={preventScrollReset} onSubmit={() => setOpen(false)}>
         {Object.entries(fields).map(([name, value]) => <input key={name} type="hidden" name={name} value={value} />)}
       </Form>
     </Dialog>

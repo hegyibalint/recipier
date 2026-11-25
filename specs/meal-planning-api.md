@@ -14,28 +14,27 @@ Only `DEMO_USER_ID` is allowed; OAuth/MCP client tokens are rejected. Do not sen
 service-role keys. An application API key is not required.
 
 Browser cookie authentication is not implemented yet. Existing pages still use
-browser sessions; these API routes ignore cookies. The `/meals` page sends its
-Supabase browser-session access token to the mealtimes endpoints to list, create,
-edit, and delete reusable named time windows. It does not seed default meal times,
-assign recipes, or define weekday/weekend repetition. Server-side browser auth
-and CSRF protection are tracked in `PLAN.md`. Cross-origin browser access is not enabled.
+browser sessions; these API routes ignore cookies. Planning sends its Supabase
+browser-session access token to manage the reusable meal rows. Cross-origin
+browser access is not enabled.
 
 Every API response uses `Cache-Control: private, no-store`. Ownership always comes
 from the verified session, not from JSON fields. Unknown request fields are errors.
 
-## Weekly calendar UI
+## Weekly planning board
 
-`/planning` presents a Monday–Sunday planning board with one row per saved
-mealtime, ordered by start time. Each row has seven slots, with the meal name and
-its compact 24-hour time range together on the left. Row heights accommodate
-recipe titles rather than representing meal durations. There is no separate time
-axis or grid of separator lines. Overlapping mealtimes remain separate rows.
+`/planning` presents a Monday–Sunday matrix with one row per named mealtime,
+in the user's saved order. Rows don't have clock times. **+ Add meal time** below
+the matrix appends a row. **Edit rows** reveals up/down, rename, and delete
+controls beside the meal names. Changes apply to every week. Moving or renaming
+a row keeps its assignments; deleting one requires confirmation. The former
+`/meals` URL redirects to Planning.
 
 Previous/next navigation uses `?week=YYYY-MM-DD`, normalized to Monday. A shared
 stepper places the week range first and groups both previous/next links on the
 right, keeping their positions stable as the label width changes. The same layout
 presents the recipe yield with both decrement/increment buttons on the right,
-disabled until yield adjustment is implemented. “Edit mealtimes” and “Go to current week” share a
+disabled until yield adjustment is implemented. “Edit rows” and “Go to current week” share a
 right-aligned action group. The current week uses the browser's local calendar date.
 Empty slots have a half-opacity raised surface, a dashed outline, and a centered
 plus; hover or keyboard focus reveals “Add recipe.” Touch layouts always show
@@ -64,8 +63,7 @@ The calendar and slot page load entries through the existing API. The recipe
 picker follows all pages of lightweight, owner-filtered ID/title/subtitle queries
 via the browser's Supabase client, rather than the newest-50 full-recipe list.
 Failed queries are shown as errors, never as apparently empty plans. The calendar
-shows current recipe titles and any existing batch multipliers. No database
-migration is needed.
+shows current recipe titles and any existing batch multipliers.
 
 ## Routes
 
@@ -73,7 +71,8 @@ migration is needed.
 | --- | --- | --- |
 | GET | `/api/mealtimes` | `200 { "mealtimes": [...] }` |
 | POST | `/api/mealtimes` | `201` created mealtime |
-| PATCH | `/api/mealtimes/:id` | `200` updated mealtime |
+| PATCH | `/api/mealtimes` | `204` after saving the order |
+| PATCH | `/api/mealtimes/:id` | `200` renamed mealtime |
 | DELETE | `/api/mealtimes/:id` | `204` with no body |
 | GET | `/api/meal-plan?from=2026-11-09&to=2026-11-16` | `200 { "entries": [...] }` |
 | POST | `/api/meal-plan` | `201` created entry |
@@ -85,20 +84,14 @@ GET endpoints also support HEAD. JSON requests require `Content-Type: applicatio
 
 ### Mealtimes
 
-Create with all three fields; PATCH accepts any nonempty subset:
+Create or rename with `{ "name": "Dinner" }`. Names are trimmed and must not be
+blank. Duplicate names are allowed. New rows append to the end of the list.
 
-```json
-{ "name": "Dinner", "starts_at": "18:00", "ends_at": "20:00" }
-```
+To reorder, PATCH the collection with `{ "ids": ["<uuid>", "<uuid>"] }`. Supply
+every owned row exactly once, in the desired order. If the rows no longer match
+the submitted set, the whole reorder is rejected with `409`.
 
-- Names must contain non-whitespace text. Duplicate names and overlapping windows
-  are allowed.
-- Times are local wall-clock preferences, not dated instants or recurring schedules.
-- Input accepts `HH:MM` or `HH:MM:00`; output uses PostgreSQL's `HH:MM:SS` format.
-- Windows must increase within the same day: `00:00 <= starts_at < ends_at < 24:00`.
-  Seconds must be zero. A single-field PATCH is checked against the stored window
-  by the database constraint.
-- Responses contain `id`, `name`, `starts_at`, `ends_at`, and `created_at`.
+- Responses contain `id`, `name`, one-based `position`, and `created_at`.
   List responses also include read-only `planned_meals_count`: the number of all
   assignments to that mealtime, including past/future dates and repeated recipes.
   The count is an owner-scoped database aggregate, not a date-limited plan query.
@@ -159,7 +152,7 @@ There is no reconciliation, deduplication, unit conversion, pantry subtraction,
 serving inference, or required provenance. Empty ranges return empty arrays.
 
 Lists follow all database pages instead of silently truncating at PostgREST's row
-limit. Entries are ordered by date/id; mealtimes by starts_at/id. A failed or
+limit. Entries are ordered by date/id; mealtimes by position/id. A failed or
 incomplete page, invalid saved recipe, or numeric overflow fails the entire request.
 There is no snapshot isolation across pages: concurrent edits may affect a query.
 Entries refer to current recipe and mealtime data, not snapshots.
@@ -180,7 +173,7 @@ recipe contents are not exposed in errors.
 | 403 | Disallowed user/OAuth session or denied operation |
 | 404 | Requested row is absent or inaccessible |
 | 405 | Unsupported method; includes `Allow` |
-| 409 | Referenced resource unavailable, still in use, or another reference conflict |
+| 409 | Referenced resource unavailable, still in use, or mealtime list changed |
 | 415 | Expected JSON content type |
 | 502 | Storage/query/extraction failure; no partial result |
 | 503 | Missing application configuration |
@@ -193,7 +186,10 @@ state before repeating creation, since repeated assignments are intentionally va
 The [initial database baseline](database.md) defines the composite mealtime
 foreign key with `ON DELETE CASCADE`. The recipe foreign key prevents deleting
 referenced recipes. The legacy `get_meal_plan` RPC remains in the baseline;
-app routes do not use it.
+app routes do not use it. The ordered-mealtimes migration initializes positions
+from the previous start-time/ID sort and removes the old clock fields. Row IDs
+and existing assignments are unchanged. Apply it before deploying this UI and API.
+
 The legacy shopping-list and MCP Edge Function source and deployment steps have
 been removed. Use `/api/shopping-list` for shopping lists. The Worker now provides
 `/mcp` with [recipe tools](mcp.md); no planning or shopping-list MCP tools are exposed.

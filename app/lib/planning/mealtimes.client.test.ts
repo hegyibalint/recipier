@@ -3,7 +3,7 @@ import type { User } from '@supabase/supabase-js';
 import { afterEach, beforeEach, test, vi } from 'vitest';
 import { allowedUser } from '../auth/session.client';
 import { supabase } from '../auth/supabase.client';
-import { deleteMealtime, loadMealtimes, saveMealtime } from './mealtimes.client';
+import { deleteMealtime, loadMealtimes, reorderMealtimes, saveMealtime } from './mealtimes.client';
 
 vi.mock('../auth/session.client', () => ({
   allowedUser: vi.fn(),
@@ -12,8 +12,8 @@ vi.mock('../auth/session.client', () => ({
 vi.mock('../auth/supabase.client', () => ({ supabase: { auth: { getSession: vi.fn() } } }));
 
 const id = '12345678-1234-4234-8234-123456789abc';
-const input = { name: 'Lunch', starts_at: '12:00', ends_at: '13:00' };
-const row = { ...input, id, starts_at: '12:00:00', ends_at: '13:00:00', created_at: '2026-11-06T10:00:00Z' };
+const input = { name: 'Lunch' };
+const row = { ...input, id, position: 1, created_at: '2026-11-06T10:00:00Z' };
 const fetcher = vi.fn<typeof fetch>();
 
 beforeEach(() => {
@@ -32,7 +32,7 @@ function assertLogin(result: unknown) {
   assert.equal(result.headers.get('Location'), '/auth/login');
 }
 
-test('loads the existing API with the current session, normalizing local times', async () => {
+test('loads the existing API with the current session, including row position', async () => {
   fetcher.mockResolvedValue(Response.json({ mealtimes: [{ ...row, planned_meals_count: 42 }] }));
   assert.deepEqual(await loadMealtimes(), { mealtimes: [{ ...row, ...input, planned_meals_count: 42 }] });
   assert.equal(fetcher.mock.calls[0][0], '/api/mealtimes');
@@ -46,13 +46,28 @@ test('empty lists work, but invalid response rows fail the whole load', async ()
   fetcher.mockResolvedValue(Response.json({ mealtimes: [] }));
   assert.deepEqual(await loadMealtimes(), { mealtimes: [] });
   for (const invalid of [
-    {}, { mealtimes: [{ ...row, planned_meals_count: 0 }, { ...row, planned_meals_count: 0, ends_at: '11:00' }] },
+    {}, { mealtimes: [{ ...row, planned_meals_count: 0 }, { ...row, planned_meals_count: 0, position: 0 }] },
     { mealtimes: [{ ...row, planned_meals_count: 0, id: 'invalid' }] },
     ...[undefined, null, -1, 1.5, '3'].map(planned_meals_count => ({ mealtimes: [{ ...row, planned_meals_count }] })),
   ]) {
     fetcher.mockResolvedValue(Response.json(invalid));
     assert.deepEqual(await loadMealtimes(), { mealtimes: [], error: 'Could not read your saved meal times.' });
   }
+});
+
+test('reorder sends the proposed order, preserves auth redirects, and reports stale rows', async () => {
+  const ids = [id, '00000000-0000-4000-8000-000000000003'];
+  fetcher.mockResolvedValue(new Response(null, { status: 204 }));
+  assert.deepEqual(await reorderMealtimes(ids), { message: 'Meal time order updated.' });
+  assert.equal(fetcher.mock.calls[0][0], '/api/mealtimes');
+  assert.equal(fetcher.mock.calls[0][1]?.method, 'PATCH');
+  assert.deepEqual(JSON.parse(fetcher.mock.calls[0][1]?.body as string), { ids });
+  assert.deepEqual(await reorderMealtimes([id, id]), { error: 'This meal time order is invalid.' });
+  assert.equal(fetcher.mock.calls.length, 1);
+  fetcher.mockResolvedValue(new Response(null, { status: 409 }));
+  assert.deepEqual(await reorderMealtimes(ids), { error: 'The meal time list changed. Try again with the updated rows.' });
+  fetcher.mockResolvedValue(new Response(null, { status: 401 }));
+  assertLogin(await reorderMealtimes(ids));
 });
 
 test('unused mealtimes retain a genuine zero usage count', async () => {
@@ -79,7 +94,7 @@ test('missing user or session redirects without fetching; expired API sessions r
 
 test('creates and updates through POST/PATCH, never accepting ownership fields', async () => {
   fetcher.mockImplementation(async () => Response.json(row));
-  assert.deepEqual(await saveMealtime(null, input), { message: 'Meal time added.', createdId: id });
+  assert.deepEqual(await saveMealtime(null, input), { message: 'Meal time added.' });
   assert.deepEqual(await saveMealtime(id, input), { message: 'Meal time updated.' });
   assert.deepEqual(fetcher.mock.calls.map(([url, options]) => [url, options?.method, JSON.parse(options?.body as string)]), [
     ['/api/mealtimes', 'POST', input], [`/api/mealtimes/${id}`, 'PATCH', input],
