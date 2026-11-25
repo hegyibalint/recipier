@@ -1,7 +1,7 @@
 project_id = "recipier"
 
 [db]
-# The default 54322 is already occupied on our CI runner.
+# Local development port; CI overrides it with SUPABASE_DB_PORT.
 port = 55432
 
 [db.seed]

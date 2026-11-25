@@ -62,6 +62,26 @@ jobs:
         id: cli
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
+      - name: Select an available Postgres port
+        # Stay below the runner's ephemeral port range while Docker pulls the image.
+        run: |
+          python3 - <<'PY' >> "$GITHUB_ENV"
+          import errno
+          import socket
+
+          for port in range(15432, 15532):
+              with socket.socket() as sock:
+                  try:
+                      sock.bind(("0.0.0.0", port))
+                  except OSError as error:
+                      if error.errno != errno.EADDRINUSE:
+                          raise
+                      continue
+                  print(f"SUPABASE_DB_PORT={port}")
+                  break
+          else:
+              raise SystemExit("No available Postgres port in 15432–15531")
+          PY
       - name: Apply all migrations to a fresh local database
         # Starts only Postgres; no hosted project credentials are present here.
         run: supabase db start
