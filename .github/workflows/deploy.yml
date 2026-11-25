@@ -11,8 +11,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  verify:
     if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: production
@@ -49,12 +53,11 @@ jobs:
           assert.ok(MCP_CLIENT_ID !== '00000000-0000-4000-8000-000000000002', 'Use the registered OAuth client, not the test fixture.');
           JS
       - run: npm ci
-      - run: npm run check
-      - run: npm test
-      - run: npm run build
+      - name: Build the Worker with production settings
+        run: npm run build
       - name: Dry-run the built Worker
         run: npx --no-install wrangler deploy --config .cache/build/server/wrangler.json --dry-run
-      - name: Deploy the tested Worker
+      - name: Deploy the built Worker
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -1,9 +1,11 @@
 # Deploy the Worker with GitHub Actions
 
-The **Deploy Worker** workflow runs manually from `main`. It checks and builds
-with production settings, dry-runs the resulting Cloudflare package, deploys it,
-and checks the web app and MCP discovery. Pull requests and normal pushes run
-CI only.
+The **Deploy Worker** workflow runs manually from `main`. It first runs the
+same CI checks on the selected commit: application type checks, tests, and a
+build, plus migrations and tests against a fresh local database. Both jobs must
+pass before the production job can start. That job builds with production
+settings, dry-runs the Cloudflare package, deploys it, and smoke-tests the web
+app and MCP discovery. Pull requests and normal pushes run CI only.
 
 ## Configure the production environment
 
