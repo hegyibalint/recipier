@@ -137,6 +137,48 @@ edits, preserving unrelated changes. Ask before overwriting overlapping changes.
 Missing and inaccessible recipes both return `recipe_not_found`. If the save
 could not be confirmed, fetch the recipe before retrying.
 
+## `get_shopping_list`
+
+Takes `{ from, to }` as `YYYY-MM-DD` dates, with `from` inclusive and `to`
+exclusive. The read-only tool uses the same owner-scoped planned ingredients as
+the browser API, including each assignment's batch multiplier and the current
+recipe documents. It returns grouped totals:
+
+```json
+{
+  "items": [
+    {
+      "id": "tofu",
+      "name": "Tofu",
+      "description": "Soft tofu",
+      "quantities": [{ "amount": 300, "unit": "g" }],
+      "hasUnquantifiedMentions": false
+    },
+    {
+      "id": "tofu",
+      "name": "Tofu",
+      "description": "Hard tofu",
+      "quantities": [{ "amount": 400, "unit": "g" }],
+      "hasUnquantifiedMentions": false
+    }
+  ]
+}
+```
+
+Each row groups by the combination of ID, name, and optional description.
+Names and descriptions ignore case and surrounding whitespace. Units match after
+trimming only; mixed units and unitless quantities stay separate. Bare mentions are flagged
+but don't add a quantity. An empty `items` array is a successful result; load failures
+return `isError: true` and a generic error instead of a partial list.
+
+The agent keeps distinct descriptions separate in its shopping instructions.
+It combines compatible units within a row and rounds up to known buyable
+sizes when possible. If two names might refer to the same ingredient, show both
+with a slash and keep their quantities
+separate rather than silently merging them. For example: “Buy
+3 heads of cabbage; make sure the third yields at least 250 g after trimming.”
+The server does not estimate produce weights, pack sizes, or pantry inventory.
+
 ## Self-hosted MCP setup
 
 The public migrations use a fixture OAuth client UUID

@@ -56,6 +56,7 @@ test('loader preserves authentication redirects and recoverable load errors', as
 test('calendar presents seven dated columns and one equal-space row per meal, not per hour', () => {
   const html = render();
   assert.deepEqual(handle, { contentWidth: 'wide' });
+  assert.match(html, /href="\/shopping-list\?from=2026-11-02&amp;through=2026-11-08"[^>]*>Shopping list/);
   assert.match(html, /role="table" aria-labelledby="week-heading"/);
   assert.equal((html.match(/role="columnheader"/g) ?? []).length, 8);
   assert.equal((html.match(/role="row"/g) ?? []).length, 3);

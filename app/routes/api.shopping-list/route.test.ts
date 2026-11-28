@@ -1,25 +1,27 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { api, assertOwner, range, page, source } from '../../../tests/support/api.ts';
+import { api, assertOwner, id, range, page, recipe, source } from '../../../tests/support/api.ts';
 import { loader } from './route.ts';
 
 test('shopping list embeds recipes using direct filters, scales usages, and never traverses component references', async () => {
   const handler = api(loader, request => {
     const url = assertOwner(request, 'meal_plan_entries');
-    assert.equal(url.searchParams.get('select'), 'multiplier,recipe:recipes!meal_plan_entries_recipe_owner_fkey(document)');
+    assert.equal(url.searchParams.get('select'), 'recipe_id,multiplier,recipe:recipes!meal_plan_entries_recipe_owner_fkey(document)');
     assert.deepEqual(url.searchParams.getAll('date'), ['gte.' + range.from, 'lt.' + range.to]);
     return page([source(0.5), source(2)]);
   });
   const response = await handler.request({ method: 'POST', payload: range });
   assert.equal(response.status, 200);
   const expected = (multiplier: number) => [
-    { name: 'fresh Garlic', amount: 6 * multiplier, unit: 'cloves' },
-    { name: 'fresh Garlic', amount: 20 * multiplier, unit: 'g' },
-    { name: '  salt to taste  ', amount: null, unit: null },
-    { name: 'fresh Garlic', amount: null, unit: null },
-    { name: 'fresh Garlic', amount: multiplier, unit: null },
+    { id: 'garlic', name: 'fresh Garlic', description: 'Whole bulb', amount: 6 * multiplier, unit: 'cloves' },
+    { id: 'garlic', name: 'fresh Garlic', description: 'Whole bulb', amount: 20 * multiplier, unit: 'g' },
+    { id: 'salt', name: '  salt to taste  ', amount: null, unit: null },
+    { id: 'garlic', name: 'fresh Garlic', description: 'Whole bulb', amount: null, unit: null },
+    { id: 'garlic', name: 'fresh Garlic', description: 'Whole bulb', amount: multiplier, unit: null },
   ];
-  assert.deepEqual(await response.json(), { items: [...expected(0.5), ...expected(2)] });
+  assert.deepEqual(await response.json(), {
+    items: [...expected(0.5), ...expected(2)].map(item => ({ ...item, source: { id, title: recipe.title } })),
+  });
 });
 
 test('shopping list follows capped pages and handles an empty range', async () => {

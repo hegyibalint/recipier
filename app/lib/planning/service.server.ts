@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { ApiError } from '../api-error.server.ts';
 import { parseRecipe } from '../recipes/validate.ts';
-import { dateRangeSchema, type CreateEntry, type CreateMealtime, type DateRange, type UpdateEntry, type UpdateMealtime } from './schema.ts';
+import { dateRangeSchema, idSchema, type CreateEntry, type CreateMealtime, type DateRange, type UpdateEntry, type UpdateMealtime } from './schema.ts';
 import { ingredientsForRecipe } from './shopping-list.ts';
 
 const mealtimeColumns = 'id,name,position,created_at';
@@ -11,6 +11,7 @@ const mealtimeUsageSchema = z.looseObject({
   planned_meals: z.array(z.object({ count: z.number().int().nonnegative() })).length(1),
 });
 const sourcesSchema = z.array(z.object({
+  recipe_id: idSchema,
   multiplier: z.number().positive(),
   recipe: z.object({ document: z.unknown() }),
 }));
@@ -76,12 +77,15 @@ export function planningService(database: SupabaseClient, userId: string) {
       const bounds = dateRangeSchema.parse(range);
       const rows = await allRows((start, end) => entries(
         bounds,
-        'multiplier,recipe:recipes!meal_plan_entries_recipe_owner_fkey(document)',
+        'recipe_id,multiplier,recipe:recipes!meal_plan_entries_recipe_owner_fkey(document)',
       ).range(start, end));
 
       // Scale ingredient usages by the planned batch size.
-      const items = sourcesSchema.parse(rows).flatMap(row =>
-        ingredientsForRecipe(parseRecipe(row.recipe.document), row.multiplier));
+      const items = sourcesSchema.parse(rows).flatMap(row => {
+        const recipe = parseRecipe(row.recipe.document);
+        const source = { id: row.recipe_id, title: recipe.title };
+        return ingredientsForRecipe(recipe, row.multiplier).map(item => ({ ...item, source }));
+      });
       return { items };
     },
   };

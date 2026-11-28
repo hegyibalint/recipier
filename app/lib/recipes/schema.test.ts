@@ -43,6 +43,8 @@ test('generated JSON Schema preserves v1 constraints and publishes step-referenc
   const ingredient = schemaObject(ingredients.items);
   const component = schemaObject(components.items);
   assert.equal(ingredient.additionalProperties, false);
+  assert.deepEqual(ingredient.required, ['id', 'name']);
+  assert.equal(schemaObject(ingredient.properties!.description).pattern, '\\S');
   assert.ok(schemaObject(ingredient.properties!.name).description!.includes('Do not include preparation state'));
   assert.ok(ingredients.description!.includes('Do not put preparation state in ingredient names or IDs'));
   assert.equal(schemaObject(ingredient.properties!.id).pattern, '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$');

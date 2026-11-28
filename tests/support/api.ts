@@ -19,13 +19,13 @@ export const meal = { name: 'Dinner', position: 1 };
 export const entry = { date: range.from, mealtime_id: id, recipe_id: id };
 export const recipe: Recipe = {
   title: 'Garlic soup', subtitle: 'Garlic three ways', description: 'A garlicky soup.',
-  ingredients: [{ id: 'garlic', name: 'fresh Garlic' }, { id: 'salt', name: '  salt to taste  ' }],
+  ingredients: [{ id: 'garlic', name: 'fresh Garlic', description: 'Whole bulb' }, { id: 'salt', name: '  salt to taste  ' }],
   components: [
     { id: 'base', steps: [{ text: '${i:garlic:6:cloves} ${i:garlic:20:g} ${i:salt} ${i:garlic}' }] },
     { id: 'finish', depends_on: ['base'], steps: [{ text: '${c:base:2} ${i:garlic:1}' }] },
   ],
 };
-export const source = (multiplier = 1, document: unknown = recipe) => ({ multiplier, recipe: { document } });
+export const source = (multiplier = 1, document: unknown = recipe) => ({ recipe_id: id, multiplier, recipe: { document } });
 export const page = (rows: unknown[], total = rows.length) =>
   Response.json(rows, { headers: { 'Content-Range': `*/${total}` } });
 

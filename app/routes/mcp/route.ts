@@ -3,6 +3,7 @@ import type { LoaderFunctionArgs } from 'react-router';
 import { userDatabase } from '../../lib/auth/database.server.ts';
 import { mcpConfig } from '../../lib/config.server.ts';
 import { mcpEndpoints } from '../../lib/mcp-endpoints.ts';
+import { planningService } from '../../lib/planning/service.server.ts';
 import { recipeService } from '../../lib/recipes/service.server.ts';
 import { createMcpAuthenticator } from './auth.server.ts';
 import { allowedOrigins, applyCors, checkCors } from './cors.ts';
@@ -50,7 +51,11 @@ async function dispatch(
 
   // Serve the MCP request with request-scoped resources and no session adapter.
   const database = userDatabase(config, auth.token);
-  const server = createMcpServer(recipeService(database, auth.userId), frontend);
+  const server = createMcpServer({
+    recipes: recipeService(database, auth.userId),
+    planning: planningService(database, auth.userId),
+    frontend,
+  });
   return new StreamableHttpTransport({ allowedOrigins }).bind(server)(request);
 }
 

@@ -62,7 +62,9 @@ There is no separate ingredient list on a component. Its ingredients and their q
 Ingredient definitions identify ingredients, not their state at a particular use.
 Do not put preparation state in ingredient names or IDs. Define one ingredient
 with ID `garlic` and name `garlic`, not separate `garlic, minced` and `whole garlic`
-ingredients. Reuse the same ID across those uses.
+ingredients. Reuse the same ID across those uses. An ingredient may include an
+optional `description` for shopping details, such as `Soft tofu` or `Hard tofu`
+under the base ID `tofu` and name `Tofu`. This does not change step-reference syntax.
 
 Put each use's preparation state in ordinary step text outside the reference:
 

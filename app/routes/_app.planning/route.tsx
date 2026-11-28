@@ -87,6 +87,8 @@ export default function Planning({ loaderData, actionData }: Route.ComponentProp
             <span aria-hidden="true">/</span>
           </>}
           <Link to="/planning">Go to current week</Link>
+          <span aria-hidden="true">/</span>
+          <Link to={`/shopping-list?from=${week.start}&through=${week.days[6]}`}>Shopping list</Link>
         </nav>
       </header>
       <div className={styles.toolbar}>

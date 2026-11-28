@@ -1,4 +1,4 @@
-import { dateSchema } from './schema';
+import { dateSchema } from './schema.ts';
 
 // Today comes from the browser's local calendar, not UTC's potentially different day.
 export function localDate(now = new Date()) {

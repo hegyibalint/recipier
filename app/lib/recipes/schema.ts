@@ -10,10 +10,13 @@ export const yieldSchema = z.strictObject({
 });
 
 const ingredientSchema = z.strictObject({
-  id: idSchema,
+  id: idSchema.describe('Use a stable base ingredient ID, e.g. tofu for both soft and firm tofu across recipes.'),
   name: z.string().min(1).describe(
     'Ingredient identity only, e.g. "garlic", not "garlic, minced". Do not include preparation state; describe it in step text outside the reference. Reuse the same ingredient ID for whole, minced, or otherwise prepared uses.',
   ),
+  description: presentationTextSchema.describe(
+    'Optional shopping detail, e.g. "Soft tofu" or "Firm tofu". Keep preparation done during cooking in the step text.',
+  ).optional(),
 });
 
 const stepSchema = z.strictObject({

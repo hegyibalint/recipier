@@ -30,10 +30,13 @@ The separate ports keep browser sessions isolated; both share the same local dat
 Auto-login credentials are exposed only in the sandbox dev server, never in builds
 or the hosted development mode.
 
-The fixtures include Lemon pasta, Chickpea bowls, Pancakes,
-and Garlic butter, plus Breakfast and Dinner mealtimes for API development.
-Chickpea bowls exercises multiple components and dependencies. No dated meal
-assignments are seeded, so all sample recipes can be deleted in the UI.
+The fixtures include Lemon pasta, Chickpea bowls, Pancakes, Garlic butter,
+Chilled tofu, Crispy tofu, Mapo tofu, and Home-style tofu, plus Breakfast and
+Dinner mealtimes. Chickpea bowls exercises multiple components and dependencies.
+Startup plans the tofu recipes, Pancakes, and Lemon pasta for the current weekend
+and prints a shopping-list link. Expand Soft tofu (650 g) to see the Chilled tofu
+and Mapo tofu contributions. Firm and hard tofu stay separate, as do generic and
+Chinese light soy sauce. Butter still shows 3 tbsp + 50 g. Remove a recipe's assignments before deleting it in the UI.
 
 ## Isolation and persistence
 
@@ -43,10 +46,13 @@ only in the Node seeding process; the app gets the publishable key and real user
 sessions, with the normal RLS policies. It does not modify `.env` or use the
 linked hosted project's credentials.
 
-Fixtures live in `scripts/local-data.ts`. Startup creates missing sample rows
-using stable IDs, without replacing existing rows or deleting other local data.
-Deleted samples return on the next startup. Fixture IDs are separate from the
-pgTAP test fixtures, so `supabase test db` can run against the seeded database.
+Fixtures live in `scripts/local-data.ts`. Edit them and restart `npm run dev:local`
+to see the updated scenario. Startup refreshes fixture recipe documents by stable
+ID, so edits to those sample documents are overwritten. It leaves recipes you
+create separately untouched. It restores missing sample mealtimes, and moves its
+own sample assignments to the current weekend without duplicating assignments
+already in the same slots. Fixture IDs are separate from the pgTAP test fixtures,
+so `supabase test db` can run against the seeded database.
 The Vitest fixture tests validate recipe schemas, references, and dependencies.
 
 The app uses Vite's `sandbox` mode. HTTP Supabase is accepted only for the exact

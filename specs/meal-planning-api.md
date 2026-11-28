@@ -65,6 +65,20 @@ via the browser's Supabase client, rather than the newest-50 full-recipe list.
 Failed queries are shown as errors, never as apparently empty plans. The calendar
 shows current recipe titles and any existing batch multipliers.
 
+## Shopping list page
+
+`/shopping-list` defaults to the current local planning week; the **Shopping list**
+link on Planning uses the displayed week. The page's **From** and **Through** dates
+are both inclusive. It sends the API an exclusive end date one day after **Through**.
+
+The page groups usages by the combination of ingredient ID, name, and optional
+description. Names and descriptions ignore case and surrounding whitespace.
+Each combination gets its own row, so soft tofu and hard tofu have separate
+totals. Only matching units (ignoring surrounding whitespace) are summed within
+a row. Bare mentions do not add to the total. The page does not convert units,
+round up to pack sizes, or subtract pantry stock. Expand an ingredient to see
+how much each recipe contributes, including repeated assignments of that recipe.
+
 ## Routes
 
 | Method | Path | Success response |
@@ -137,19 +151,22 @@ curl "$APP_ORIGIN/api/shopping-list" \
 ```json
 {
   "items": [
-    { "name": "garlic", "amount": 6, "unit": "cloves" },
-    { "name": "fresh garlic", "amount": 20, "unit": "g" },
-    { "name": "salt", "amount": null, "unit": null }
+    {
+      "id": "tofu", "name": "Tofu", "description": "Soft tofu", "amount": 300, "unit": "g",
+      "source": { "id": "<recipe uuid>", "title": "Chilled tofu" }
+    }
   ]
 }
 ```
 
 Ingredient usages are concatenated from planned recipes. Explicit quantities are
 scaled by each entry's multiplier; bare mentions remain `amount: null`. Missing
-units are `null`. Repeated references, original names, and units are preserved.
+units are `null`. Each usage includes its recipe-local ingredient `id`, original
+`name`, and `description` when present, plus the source recipe's ID and title.
+Repeated references and units are preserved.
 Each component's own steps are visited once; component references are not traversed.
 There is no reconciliation, deduplication, unit conversion, pantry subtraction,
-serving inference, or required provenance. Empty ranges return empty arrays.
+or serving inference. Empty ranges return empty arrays.
 
 Lists follow all database pages instead of silently truncating at PostgREST's row
 limit. Entries are ordered by date/id; mealtimes by position/id. A failed or
@@ -191,7 +208,7 @@ from the previous start-time/ID sort and removes the old clock fields. Row IDs
 and existing assignments are unchanged. Apply it before deploying this UI and API.
 
 The legacy shopping-list and MCP Edge Function source and deployment steps have
-been removed. Use `/api/shopping-list` for shopping lists. The Worker now provides
-`/mcp` with [recipe tools](mcp.md); no planning or shopping-list MCP tools are exposed.
+been removed. Use `/api/shopping-list` for raw shopping-list usages. The Worker
+also provides [recipe tools and a read-only shopping-list tool](mcp.md) at `/mcp`.
 See [MCP](mcp.md) for the pending hosted OAuth activation. This code change does
 not delete any already-hosted functions.

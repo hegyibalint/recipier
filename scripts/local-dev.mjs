@@ -1,7 +1,8 @@
 import { execFileSync, spawn } from 'node:child_process';
+import { isDeepStrictEqual } from 'node:util';
 import { createClient } from '@supabase/supabase-js';
 import { recipeSchema } from '../app/lib/recipes/schema.ts';
-import { localUser, localRecipes, localRecipeId, localMealtimes } from './local-data.ts';
+import { localUser, localRecipes, localRecipeId, localMealtimes, localPlan } from './local-data.ts';
 
 // Never load .env here: local credentials must come from the local CLI, not a
 // linked project or a developer's hosted settings. Privileged keys stay in Node.
@@ -52,19 +53,37 @@ if (!existing.data.user) {
   checked(await admin.auth.admin.createUser({ ...localUser, email_confirm: true }));
 }
 
-// Stable IDs make seeding repeatable without overwriting edits. Deleted sample
-// rows are restored at the next startup; other locally created data is retained.
-checked(await admin.from('recipes').upsert(localRecipes.map((document, index) => ({
-  id: localRecipeId(index),
+// Refresh only fixture IDs, and avoid creating recipe revisions on unchanged restarts.
+const ids = localRecipes.map((_, index) => localRecipeId(index));
+const saved = checked(await admin.from('recipes').select('id,document').eq('user_id', localUser.id).in('id', ids));
+const documents = new Map(saved.map(({ id, document }) => [id, document]));
+const recipes = localRecipes.map((document, index) => ({
+  id: ids[index],
   user_id: localUser.id,
-  created_at: new Date(Date.UTC(2026, 10, 3 - index, 12)).toISOString(),
   document: recipeSchema.parse(document),
-})), { onConflict: 'id', ignoreDuplicates: true }));
+}));
+const changed = recipes.filter(({ id, document }) => !isDeepStrictEqual(documents.get(id), document));
+if (changed.length) checked(await admin.from('recipes').upsert(changed, { onConflict: 'id,user_id' }));
+
 checked(await admin.from('mealtimes').upsert(localMealtimes.map(mealtime => ({
   ...mealtime, user_id: localUser.id,
 })), { onConflict: 'id', ignoreDuplicates: true }));
 
-console.log(`\nLocal development: http://127.0.0.1:${port}\n${manualAuth ? 'Manual login' : 'Automatic local login'}\nEmail: ${localUser.email}\nPassword: ${localUser.password}\n`);
+// Reuse existing assignments for these same recipe/slot pairs, including earlier demos.
+const plan = localPlan();
+const planned = checked(await admin.from('meal_plan_entries').select('date,mealtime_id,recipe_id')
+  .eq('user_id', localUser.id).gte('date', plan.from).lte('date', plan.through)
+  .in('recipe_id', plan.entries.map(entry => entry.recipe_id)));
+const assignments = plan.entries.filter(entry => !planned.some(row =>
+  row.date === entry.date && row.mealtime_id === entry.mealtime_id && row.recipe_id === entry.recipe_id));
+for (const entry of assignments) {
+  // Scope updates to the fixture owner before moving a previous week's sample.
+  const updated = checked(await admin.from('meal_plan_entries').update(entry)
+    .eq('id', entry.id).eq('user_id', localUser.id).select('id').maybeSingle());
+  if (!updated) checked(await admin.from('meal_plan_entries').insert({ ...entry, user_id: localUser.id }));
+}
+
+console.log(`\nLocal development: http://127.0.0.1:${port}\n${manualAuth ? 'Manual login' : 'Automatic local login'}\nEmail: ${localUser.email}\nPassword: ${localUser.password}\nShopping example: http://127.0.0.1:${port}/shopping-list?from=${plan.from}&through=${plan.through}\n`);
 const app = spawn('npm', ['run', 'dev', '--', '--mode', 'sandbox', '--port', port, '--strictPort'], {
   stdio: 'inherit',
   env: {

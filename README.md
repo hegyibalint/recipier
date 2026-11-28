@@ -8,13 +8,14 @@ Recipier is an AI-first recipe and ingredient system. It can be used to:
   see its ingredients and steps.
 - **Plan your week.** Set up mealtimes like breakfast or dinner, then assign
   recipes to them on the calendar.
+- **Shop from your meal plan.** Pick dates to get a grouped ingredient list.
 
 ## MCP
 
 Connect ChatGPT through the
 [Model Context Protocol](https://modelcontextprotocol.io/specification/latest)
-to list, read, save, and update your recipes. Meal planning is in the web app;
-shopping-list generation is available through the HTTP API.
+to list, read, save, and update recipes or turn your meal plan’s ingredient
+list into practical buying instructions. Meal planning stays in the web app.
 
 ## Try it locally
 
