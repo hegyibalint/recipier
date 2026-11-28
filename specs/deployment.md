@@ -1,16 +1,18 @@
 # Deploy the Worker with GitHub Actions
 
-The **Deploy Worker** workflow runs manually from `main`. It first runs the
-same CI checks on the selected commit: application type checks, tests, and a
-build, plus migrations and tests against a fresh local database. Both jobs must
-pass before the production job can start. That job builds with production
-settings, dry-runs the Cloudflare package, deploys it, and smoke-tests the web
-app and MCP discovery. Pull requests and normal pushes run CI only.
+Every push to `main` triggers **Deploy Worker**. It verifies the pushed commit
+with application type checks, tests, and a build, plus migrations and tests
+against a fresh local database. Both jobs must pass before the production job
+can start. That job builds with production settings, dry-runs the Cloudflare
+package, deploys it, and smoke-tests the web app and MCP discovery. Pull requests
+run the same checks without deploying. You can also run **Deploy Worker**
+manually from `main`.
 
 ## Configure the production environment
 
 In **Settings → Environments**, create `production` and restrict deployments to
-`main`. Add a required reviewer if available. Set these environment variables:
+`main`. Leave required reviewers disabled for automatic releases. Set these
+environment variables:
 
 | Variable | Value |
 | --- | --- |
@@ -35,5 +37,7 @@ require a Supabase access token or database password.
 - If another repository or Git integration deploys this Worker, disable that
   deployment trigger before running this workflow. A GitHub concurrency group
   does not coordinate runs across repositories.
-- In **Actions → Deploy Worker**, select `main` and run the workflow. After the
-  anonymous checks pass, verify real sign-in and an authenticated MCP request.
+- The workflow does not apply production database migrations. Coordinate any
+  schema changes the new Worker requires before pushing it to `main`.
+- After the first deployment's smoke tests pass, verify real sign-in and an
+  authenticated MCP request.
