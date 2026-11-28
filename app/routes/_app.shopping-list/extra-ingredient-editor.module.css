@@ -1,0 +1,23 @@
+.editor > label {
+  margin: .75rem 0;
+}
+
+.quantityFields {
+  margin-inline: 0;
+
+  & legend {
+    font-weight: 600;
+  }
+}
+
+.quantityRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) auto;
+  align-items: end;
+  gap: .5rem;
+  margin-block: .65rem;
+
+  & label {
+    margin: 0;
+  }
+}

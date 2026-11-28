@@ -20,7 +20,7 @@ function render(disabled = false) {
 
 test('Editable shows the label followed by a right pencil button', () => {
   const html = render();
-  assert.match(html, /aria-label="Edit recipe title"/);
+  assert.match(html, /<button(?=[^>]*aria-label="Edit recipe title")(?=[^>]*class="button ghost icon")[^>]*>/);
   assert.match(html, /<svg[^>]*aria-hidden="true"/);
   assert.ok(html.indexOf('Soup') < html.indexOf('<button'));
   assert.doesNotMatch(html, /<input/);

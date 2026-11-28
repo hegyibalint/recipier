@@ -139,8 +139,8 @@ could not be confirmed, fetch the recipe before retrying.
 
 ## `get_shopping_list`
 
-Takes `{ from, to }` as `YYYY-MM-DD` dates, with `from` inclusive and `to`
-exclusive. The read-only tool uses the same owner-scoped planned ingredients as
+Takes `{ from, to? }` as `YYYY-MM-DD` dates, with `from` inclusive and `to`
+exclusive when supplied. Omit `to` to include every assignment on or after `from`. The read-only tool uses the same owner-scoped planned ingredients as
 the browser API, including each assignment's batch multiplier and the current
 recipe documents. It returns grouped totals:
 
@@ -180,6 +180,21 @@ with a slash and keep their quantities
 separate rather than silently merging them. For example: “Buy
 3 heads of cabbage; make sure the third yields at least 250 g after trimming.”
 The server does not estimate produce weights, pack sizes, or pantry inventory.
+
+## Extra ingredients
+
+The same owner-scoped ad-hoc list is shared with the shopping-list page. These
+entries have no recipe or date and are not part of `get_shopping_list` totals.
+
+- `list_adhoc_ingredients` takes no arguments and returns `{ "items": [...] }`.
+- `add_adhoc_ingredient` takes `name` and optional `original_name`, `description`,
+  and `quantities`. The result contains the saved `item` with its UUID `id`.
+- `remove_adhoc_ingredient` takes `{ "id": "<uuid>" }` and returns the removed ID.
+  Use the ID from the list or the add result. Editing is available in the browser.
+
+A quantity is `{ "amount": 2, "unit": "bags" }`. Amounts must be positive;
+use `null` for a unitless amount or omit `quantities` if no amount was specified.
+Duplicates are allowed. List extras before retrying a write that could not be confirmed.
 
 ## Self-hosted MCP setup
 

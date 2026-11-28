@@ -39,7 +39,7 @@ test('the MCP client reads grouped ingredients across every page with the caller
     const tool = tools.find(tool => tool.name === 'get_shopping_list');
     assert.ok(tool);
     assert.equal(tool.annotations?.readOnlyHint, true);
-    assert.deepEqual(tool.inputSchema.required, ['from', 'to']);
+    assert.deepEqual(tool.inputSchema.required, ['from']);
     assert.match(tool.description ?? '', /inclusive.*exclusive/);
 
     const result = await client.callTool({ name: tool.name, arguments: range });

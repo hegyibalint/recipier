@@ -30,12 +30,12 @@ test('dialog labels itself with its visible title and optional description, with
   const html = renderToStaticMarkup(<Dialog {...props} open description="This cannot be undone."
     footer={<button type="button">Cancel</button>}><p>Recipe details</p></Dialog>);
   assert.match(html, /<dialog(?=[^>]*aria-labelledby="dialog-test-title")(?=[^>]*aria-describedby="dialog-test-description")[^>]*>/);
-  assert.match(html, /<h2 id="dialog-test-title">Delete recipe\?<\/h2>/);
+  assert.match(html, /<h2 id="dialog-test-title" class="section-title">Delete recipe\?<\/h2>/);
   assert.match(html, /<p id="dialog-test-description">This cannot be undone\.<\/p>/);
   assert.match(html, /<p>Recipe details<\/p>/);
   assert.match(html, /<div class="footer"><button type="button">Cancel<\/button><\/div>/);
   assert.doesNotMatch(html, /<header|<footer/);
-  assert.match(html, /aria-label="Close dialog"/);
+  assert.match(html, /<button(?=[^>]*aria-label="Close dialog")(?=[^>]*class="button ghost icon")[^>]*>/);
   assert.doesNotMatch(html, /\sopen(?:[\s=>])|tabindex=|aria-modal=/);
 });
 

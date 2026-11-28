@@ -67,9 +67,11 @@ shows current recipe titles and any existing batch multipliers.
 
 ## Shopping list page
 
-`/shopping-list` defaults to the current local planning week; the **Shopping list**
-link on Planning uses the displayed week. The page's **From** and **Through** dates
-are both inclusive. It sends the API an exclusive end date one day after **Through**.
+`/shopping-list` defaults to seven days starting today on the browser's local
+calendar. The period selector switches directly between **Days ahead**,
+**Next week** (the following Monday through Sunday), and **All upcoming**
+(today onward). The day count appears only in **Days ahead** and updates immediately.
+The **Shopping list** link on Planning still opens the displayed week directly.
 
 The page groups usages by the combination of ingredient ID, name, and optional
 description. Names and descriptions ignore case and surrounding whitespace.
@@ -79,6 +81,12 @@ Only matching units (ignoring surrounding whitespace) are summed within a row.
 Bare mentions do not add to the total. The page does not convert units,
 round up to pack sizes, or subtract pantry stock. Expand an ingredient to see
 how much each recipe contributes, including repeated assignments of that recipe.
+
+**Extra ingredients** is a separate, saved list for items without recipes.
+Use the Add or Edit dialog to enter a name, an optional original-language name
+and description, and zero or more quantity rows. Extras are visible in every
+shopping period until removed. They are not merged into recipe totals and have
+separate [MCP tools](mcp.md#extra-ingredients).
 
 ## Routes
 
@@ -94,8 +102,22 @@ how much each recipe contributes, including repeated assignments of that recipe.
 | PATCH | `/api/meal-plan/:id` | `200` updated entry |
 | DELETE | `/api/meal-plan/:id` | `204` with no body |
 | POST | `/api/shopping-list` | `200 { "items": [...] }` |
+| GET | `/api/shopping-list-extras` | `200 { "items": [...] }` |
+| POST | `/api/shopping-list-extras` | `201` created extra ingredient |
+| PATCH | `/api/shopping-list-extras` | `200` updated extra ingredient |
+| DELETE | `/api/shopping-list-extras` | `204` with no body |
 
 GET endpoints also support HEAD. JSON requests require `Content-Type: application/json`.
+
+### Extra ingredients
+
+Create with `{ "name": "Ice", "quantities": [{ "amount": 2, "unit": "bags" }] }`.
+`original_name`, `description`, and `quantities` are optional. Amounts must be
+positive; `unit: null` is a unitless amount. A missing or empty array means no
+quantity was given. Edit by sending the complete ingredient with its `id`; omitted
+optional fields are cleared. Remove with `{ "id": "<uuid>" }`.
+Responses also include `id` and use `null` for missing original names and descriptions.
+Items are listed in creation order. Existing free-text entries are preserved as names.
 
 ### Mealtimes
 
@@ -138,9 +160,10 @@ the submitted set, the whole reorder is rejected with `409`.
 
 ### Ranges and shopping list
 
-Both range operations require `from < to`: inclusive `from`, exclusive `to`.
-The meal-plan GET accepts exactly one of each query parameter, with no extra keys.
-The shopping-list POST takes the same fields as JSON:
+Both range operations use inclusive `from` and exclusive `to` when present, with
+`from < to`. The meal-plan GET requires both query parameters. The shopping-list
+POST takes them as JSON and allows omitting `to` to include every assignment on
+or after `from`:
 
 ```sh
 curl "$APP_ORIGIN/api/shopping-list" \

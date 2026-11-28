@@ -34,7 +34,7 @@ test('ingredient totals combine matching units and keep different units separate
 test('recipe contents owns its full/preview variant and accepts page layout classes', () => {
   const full = renderToStaticMarkup(createElement(RecipeContents, { recipe: document, className: 'pageLayout' }));
   assert.match(full, /class="contents full pageLayout"/);
-  assert.match(full, /<h2>Ingredients<\/h2>/);
+  assert.match(full, /<h2 class="section-title">Ingredients<\/h2>/);
   assert.match(full, /class="dependency">Prepare first: Butter base<\/p>/);
   assert.doesNotMatch(full, /class="muted"/);
 

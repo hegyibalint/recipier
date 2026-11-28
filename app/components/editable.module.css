@@ -1,25 +1,8 @@
 .display {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: .5rem;
   min-width: 0;
-}
-
-.pencil {
-  display: inline-grid;
-  place-items: center;
-  flex-shrink: 0;
-  align-self: center;
-  width: 2rem;
-  height: 2rem;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-muted);
-  cursor: pointer;
-
-  &:hover { color: var(--color-text); }
 }
 
 .value {

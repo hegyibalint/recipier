@@ -2,11 +2,13 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { ApiError } from '../api-error.server.ts';
 import { parseRecipe } from '../recipes/validate.ts';
-import { dateRangeSchema, idSchema, type CreateEntry, type CreateMealtime, type DateRange, type UpdateEntry, type UpdateMealtime } from './schema.ts';
+import { dateRangeSchema, idSchema, shoppingRangeSchema, type CreateEntry, type CreateMealtime, type DateRange, type ShoppingRange, type UpdateEntry, type UpdateMealtime } from './schema.ts';
 import { ingredientsForRecipe } from './shopping-list.ts';
+import { extraIngredientSchema, type NewExtraIngredient } from './shopping-extras.ts';
 
 const mealtimeColumns = 'id,name,position,created_at';
 const entryColumns = 'id,date,mealtime_id,recipe_id,multiplier,created_at';
+const extraColumns = 'id,name,original_name,description,quantities';
 const mealtimeUsageSchema = z.looseObject({
   planned_meals: z.array(z.object({ count: z.number().int().nonnegative() })).length(1),
 });
@@ -22,9 +24,11 @@ type Page = { data: unknown[] | null; count: number | null; error: DatabaseError
 // No HTTP or session handling here. Every operation retains both the caller's
 // JWT/RLS and an explicit owner filter; callers cannot supply ownership fields.
 export function planningService(database: SupabaseClient, userId: string) {
-  const entries = (range: DateRange, columns = entryColumns) => database.from('meal_plan_entries')
-    .select(columns, { count: 'exact' }).eq('user_id', userId)
-    .gte('date', range.from).lt('date', range.to).order('date').order('id');
+  const entries = ({ from, to }: ShoppingRange, columns = entryColumns) => {
+    const query = database.from('meal_plan_entries').select(columns, { count: 'exact' })
+      .eq('user_id', userId).gte('date', from);
+    return (to === undefined ? query : query.lt('date', to)).order('date').order('id');
+  };
 
   return {
     listMealtimes: async () => {
@@ -72,9 +76,29 @@ export function planningService(database: SupabaseClient, userId: string) {
         .eq('user_id', userId).eq('id', id).select('id').maybeSingle());
     },
 
-    shoppingList: async (range: DateRange) => {
+    listShoppingExtras: async () => {
+      const rows = await allRows((start, end) => database.from('shopping_list_extras')
+        .select(extraColumns, { count: 'exact' }).eq('user_id', userId)
+        .order('created_at').order('id').range(start, end));
+      return rows.map(row => extraIngredientSchema.parse(row));
+    },
+
+    addShoppingExtra: async (input: NewExtraIngredient) => extraIngredientSchema.parse(await changedRow(
+      database.from('shopping_list_extras').insert({ ...extraFields(input), user_id: userId })
+        .select(extraColumns).single())),
+
+    updateShoppingExtra: async (id: string, input: NewExtraIngredient) => extraIngredientSchema.parse(await changedRow(
+      database.from('shopping_list_extras').update(extraFields(input)).eq('user_id', userId).eq('id', id)
+        .select(extraColumns).maybeSingle())),
+
+    deleteShoppingExtra: async (id: string) => {
+      await changedRow(database.from('shopping_list_extras').delete()
+        .eq('user_id', userId).eq('id', id).select('id').maybeSingle());
+    },
+
+    shoppingList: async (range: ShoppingRange) => {
       // Load every planned recipe in the validated date range.
-      const bounds = dateRangeSchema.parse(range);
+      const bounds = shoppingRangeSchema.parse(range);
       const rows = await allRows((start, end) => entries(
         bounds,
         'recipe_id,multiplier,recipe:recipes!meal_plan_entries_recipe_owner_fkey(document)',
@@ -89,6 +113,10 @@ export function planningService(database: SupabaseClient, userId: string) {
       return { items };
     },
   };
+}
+
+function extraFields({ name, original_name, description, quantities }: NewExtraIngredient) {
+  return { name, original_name: original_name ?? null, description: description ?? null, quantities: quantities ?? [] };
 }
 
 function checkError(error: DatabaseError | null) {

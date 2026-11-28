@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode, type RefObject } from 'react';
-import { Button } from './button';
+import { IconButton } from './button';
 import styles from './dialog.module.css';
 
 type DialogProps = {
@@ -39,13 +39,13 @@ export function Dialog({ open, onClose, title, description, children, footer, in
     }}>
     <div className={styles.surface}>
       <div className={styles.header}>
-        <h2 id={`${id}-title`}>{title}</h2>
-        <Button variant="secondary" className={styles.close} aria-label="Close dialog" onClick={close}>
+        <h2 id={`${id}-title`} className="section-title">{title}</h2>
+        <IconButton label="Close dialog" onClick={close}>
           <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
             <path d="m6 6 12 12M18 6 6 18" />
           </svg>
-        </Button>
+        </IconButton>
       </div>
       <div className={styles.body}>
         {description && <p id={`${id}-description`}>{description}</p>}

@@ -131,7 +131,7 @@ test('optional fields, empty ingredients, and component title fallbacks render s
     components: [{ id: 'main', steps: [{ text: '<img src=x onerror=alert(1)>' }] }],
   } } });
   assert.match(html, /No ingredients listed/);
-  assert.match(html, /<h2>main<\/h2>/);
+  assert.match(html, /<h2 class="section-title">main<\/h2>/);
   assert.match(html, /&lt;script&gt;/);
   assert.doesNotMatch(html, /<script|<img|Makes /);
 });

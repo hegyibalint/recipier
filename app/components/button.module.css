@@ -12,6 +12,12 @@
   line-height: 1.4;
 }
 
+.icon {
+  inline-size: 2.75rem;
+  flex-shrink: 0;
+  padding: 0;
+}
+
 .square {
   border-radius: 0;
 
@@ -42,11 +48,25 @@
   }
 }
 
-.secondary {
+.secondary,
+.outline {
   background: var(--color-surface-raised);
   color: var(--color-text);
 
   &:hover:not(:disabled) {
     background: var(--color-background);
+  }
+}
+
+.outline {
+  border: var(--border);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-muted);
+
+  &:hover:not(:disabled), &:focus-visible {
+    color: var(--color-text);
   }
 }

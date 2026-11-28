@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Button } from './button';
+import { Button, IconButton } from './button';
+import { PencilIcon } from './pencil-icon';
 import styles from './editable.module.css';
 
 type Props = {
@@ -20,13 +21,9 @@ export function Editable({ value, label, name, disabled = false, saved, children
 
   if (!editing) return <span className={styles.display}>
     <span className={styles.value}>{value}</span>
-    <button type="button" className={styles.pencil} aria-label={`Edit ${label.toLowerCase()}`}
-      disabled={disabled} onClick={() => setEditing(true)}>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="m16 3 5 5M3 21l5-1L21 7a2.12 2.12 0 0 0-3-3L5 17l-2 4Z" />
-      </svg>
-    </button>
+    <IconButton label={`Edit ${label.toLowerCase()}`} disabled={disabled} onClick={() => setEditing(true)}>
+      <PencilIcon />
+    </IconButton>
   </span>;
 
   return <span className={styles.editor} onKeyDown={event => {

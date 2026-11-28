@@ -53,7 +53,8 @@ label {
   font-weight: 600;
 }
 
-input {
+input,
+textarea {
   display: block;
   width: 100%;
   padding: .65rem;
@@ -68,6 +69,10 @@ input {
     outline: none;
     box-shadow: var(--focus-field);
   }
+}
+
+textarea {
+  resize: vertical;
 }
 
 button {
@@ -142,6 +147,13 @@ details[open] > summary {
 
 .recipe-text {
   white-space: pre-wrap;
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-heading);
+  font-weight: 400;
+  letter-spacing: -.02em;
 }
 
 .page-title {

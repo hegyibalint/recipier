@@ -8,8 +8,10 @@ import { recipeJsonSchema } from '../../../lib/recipes/schema.ts';
 test('tool listing exposes recipe creation with write annotations alongside recipe listing', async () => {
   const handle = mockMcp();
   const { result } = await readRpc(await handle(rpc('tools/list', await token())));
-  assert.deepEqual(result.tools.map((tool: { name: string }) => tool.name),
-    ['create_recipe', 'list_recipes', 'get_recipe', 'update_recipe', 'get_shopping_list']);
+  assert.deepEqual(result.tools.map((tool: { name: string }) => tool.name), [
+    'create_recipe', 'list_recipes', 'get_recipe', 'update_recipe', 'get_shopping_list',
+    'list_adhoc_ingredients', 'add_adhoc_ingredient', 'remove_adhoc_ingredient',
+  ]);
   assert.deepEqual(result.tools[0].annotations, {
     readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false,
   });
@@ -65,8 +67,6 @@ test('official MCP client receives recipe metadata and saves as the verified use
   try {
     await client.connect(transport);
     const { tools } = await client.listTools();
-    assert.deepEqual(tools.map(tool => tool.name),
-      ['create_recipe', 'list_recipes', 'get_recipe', 'update_recipe', 'get_shopping_list']);
     const createRecipe = tools.find(tool => tool.name === 'create_recipe');
     assert.ok(createRecipe);
     assert.deepEqual(createRecipe.inputSchema, recipeJsonSchema,

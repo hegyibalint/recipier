@@ -37,6 +37,7 @@ test('official filesystem routing preserves every page/API URL and ignores coloc
     '/api/meal-plan': 'routes/api.meal-plan/route.ts',
     '/api/meal-plan/:id': 'routes/api.meal-plan.$id/route.ts',
     '/api/shopping-list': 'routes/api.shopping-list/route.ts',
+    '/api/shopping-list-extras': 'routes/api.shopping-list-extras/route.ts',
     '/mcp': 'routes/mcp/route.ts',
     '/.well-known/oauth-protected-resource/mcp': 'routes/[.]well-known.oauth-protected-resource.mcp/route.ts',
   });

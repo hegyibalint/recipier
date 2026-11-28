@@ -39,6 +39,19 @@ test('shopping list preserves original-language labels from the recipe document'
   assert.equal('original_name' in items[2], false);
 });
 
+test('omitting the end date includes every upcoming page without an upper bound', async () => {
+  const handler = api(loader, (request, number) => {
+    const url = assertOwner(request, 'meal_plan_entries');
+    assert.deepEqual(url.searchParams.getAll('date'), ['gte.' + range.from]);
+    assert.equal(url.searchParams.get('offset'), String(number - 1));
+    return page([source()], 2);
+  });
+  const response = await handler.request({ method: 'POST', payload: { from: range.from } });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).items.length, 10);
+  assert.equal(handler.calls.length, 2);
+});
+
 test('shopping list follows capped pages and handles an empty range', async () => {
   let empty = false;
   const handler = api(loader, (request, number) => {

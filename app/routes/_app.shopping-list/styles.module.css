@@ -1,13 +1,56 @@
-.range {
+.periods {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
-  gap: .75rem;
+  align-items: center;
+  gap: .5rem 1rem;
   margin-bottom: 1.5rem;
+}
 
-  & label {
-    margin: 0;
+.options {
+  display: inline-flex;
+  max-width: 100%;
+  overflow: hidden;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--color-surface-raised);
+
+  & a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: .35rem .65rem;
+    color: var(--color-text);
+    font-weight: 600;
+    line-height: 1.25;
+    text-align: center;
+    text-decoration: none;
+
+    & + a {
+      border-inline-start: var(--border-divider);
+    }
+
+    &:hover {
+      background: var(--color-background);
+    }
+
+    &:focus-visible {
+      outline-offset: -4px;
+    }
+
+    &[aria-current="true"] {
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+
+      &:focus-visible {
+        outline-color: var(--color-on-primary);
+      }
+    }
   }
+}
+
+.dayCount {
+  margin-inline-start: auto;
 }
 
 .items {
@@ -81,4 +124,31 @@
   display: block;
   color: var(--color-muted);
   font-size: .9rem;
+}
+
+.extras {
+  margin-block-start: 2rem;
+}
+
+.addExtra {
+  margin-block-start: 1rem;
+}
+
+.extraRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem 1rem;
+  padding-block: .65rem;
+}
+
+.extraHeading {
+  flex: 1 1 13rem;
+  min-inline-size: 0;
+}
+
+.extraActions {
+  display: flex;
+  gap: .5rem;
+  margin-inline-start: auto;
 }

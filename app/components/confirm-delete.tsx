@@ -1,6 +1,6 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
 import { Form } from 'react-router';
-import { Button } from './button';
+import { Button, IconButton } from './button';
 import { Dialog } from './dialog';
 
 type ConfirmDeleteProps = {
@@ -13,19 +13,22 @@ type ConfirmDeleteProps = {
   disabled?: boolean;
   preventScrollReset?: boolean;
   className?: string;
+  iconOnly?: boolean;
   'aria-label'?: string;
 };
 
 /** A separate POST form, so an invalid edit draft never blocks deletion. */
 export function ConfirmDelete({ itemName, children, actionLabel = 'Delete',
   description = 'This will permanently delete it. This cannot be undone.', details, fields = {}, disabled,
-  className, preventScrollReset, 'aria-label': ariaLabel }: ConfirmDeleteProps) {
+  className, iconOnly, preventScrollReset, 'aria-label': ariaLabel }: ConfirmDeleteProps) {
   const [open, setOpen] = useState(false);
   const cancel = useRef<HTMLButtonElement>(null);
   const formId = `${useId()}-delete-form`;
+  const trigger = { className, disabled, 'aria-haspopup': 'dialog' as const, onClick: () => setOpen(true) };
   return <>
-    <button type="button" className={className} disabled={disabled} aria-label={ariaLabel}
-      aria-haspopup="dialog" onClick={() => setOpen(true)}>{children}</button>
+    {iconOnly
+      ? <IconButton {...trigger} label={ariaLabel ?? `${actionLabel} ${itemName}`}>{children}</IconButton>
+      : <button {...trigger} type="button" aria-label={ariaLabel}>{children}</button>}
     <Dialog open={open} onClose={() => setOpen(false)} title={`Delete “${itemName}”?`}
       description={description} initialFocusRef={cancel}
       footer={<>

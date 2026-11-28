@@ -2,6 +2,7 @@ import { McpServer } from 'mcp-lite';
 import { z } from 'zod';
 import type { planningService } from '../../../lib/planning/service.server.ts';
 import type { recipeService } from '../../../lib/recipes/service.server.ts';
+import { registerAdhocIngredients } from './adhoc-ingredients.server.ts';
 import { registerCreateRecipe } from './create-recipe.server.ts';
 import { registerListRecipes } from './list-recipes.server.ts';
 import { registerRecipeEditing } from './recipe-editing.server.ts';
@@ -20,5 +21,6 @@ export function createMcpServer({ recipes, planning, frontend }: {
   registerListRecipes(server, recipes.list);
   registerRecipeEditing(server, recipes);
   registerShoppingList(server, planning.shoppingList);
+  registerAdhocIngredients(server, planning);
   return server;
 }

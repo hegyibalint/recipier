@@ -12,6 +12,15 @@ export const dateRangeSchema = z.strictObject({
 
 export type DateRange = z.infer<typeof dateRangeSchema>;
 
+export const shoppingRangeSchema = z.strictObject({
+  from: dateSchema,
+  to: dateSchema.optional(),
+}).refine(value => value.to === undefined || value.from < value.to, {
+  path: ['to'],
+  message: 'Expected from < to (inclusive from, exclusive to).',
+});
+export type ShoppingRange = z.infer<typeof shoppingRangeSchema>;
+
 export const idSchema = z.uuid();
 const nonempty = (value: object) => Object.keys(value).length > 0;
 

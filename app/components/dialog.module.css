@@ -49,18 +49,7 @@
     align-self: center;
     min-width: 0;
     margin: 0;
-    font-family: var(--font-heading);
-    font-size: var(--font-size-heading);
-    font-weight: 400;
-    letter-spacing: -.02em;
   }
-}
-
-.close {
-  flex-shrink: 0;
-  width: 2.75rem;
-  padding: 0;
-  color: var(--color-muted);
 }
 
 .body {

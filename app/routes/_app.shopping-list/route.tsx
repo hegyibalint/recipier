@@ -1,44 +1,53 @@
-import { Form, Link, useNavigation, useRevalidator } from 'react-router';
+import { Link, useNavigation, useRevalidator } from 'react-router';
 import { Button } from '../../components/button';
+import { Stepper } from '../../components/stepper';
 import { planningRequest } from '../../lib/planning/api.client';
-import { calendarWeek, shiftDate } from '../../lib/planning/calendar';
-import { dateRangeSchema, dateSchema } from '../../lib/planning/schema';
-import { shoppingListSchema, shoppingListWithContributions, type ShoppingTotal } from '../../lib/planning/shopping-list';
+import { calendarDate, shiftDate } from '../../lib/planning/calendar';
+import type { ShoppingRange } from '../../lib/planning/schema';
+import { shoppingListSchema, shoppingListWithContributions } from '../../lib/planning/shopping-list';
+import { changeExtras, loadExtras } from './extras.client';
+import { ShoppingExtras } from './extras';
+import { Quantities } from './quantities';
+import { maxShoppingDays, shoppingSelection, type ShoppingMode } from './range';
 import type { Route } from './+types/route';
 import styles from './styles.module.css';
 
-const formatAmount = new Intl.NumberFormat(undefined, { maximumSignificantDigits: 15 });
+const formatDate = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeZone: 'UTC' });
 
 export function meta() {
   return [{ title: 'Shopping list · Recipier' }];
 }
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
-  const params = new URL(request.url).searchParams;
-  const week = calendarWeek(null);
-  const custom = params.has('from') || params.has('through');
-  const from = custom ? params.get('from') ?? '' : week.start;
-  const through = custom ? params.get('through') ?? '' : week.days[6];
-  const dates = { from, through };
-  const range = dateRangeSchema.safeParse({
-    from, to: dateSchema.safeParse(through).success ? shiftDate(through, 1) : '',
-  });
-  if (!range.success) {
-    return { dates, dateError: 'Choose valid dates, with the end date on or after the start date.' };
-  }
+  const selected = shoppingSelection(new URL(request.url).searchParams);
+  const [planned, extras] = await Promise.all([loadPlanned(selected.range), loadExtras()]);
+  if (planned instanceof Response) return planned;
+  if (extras instanceof Response) return extras;
+  return { ...selected, ...planned, ...extras };
+}
+
+export function clientAction({ request }: Route.ClientActionArgs) {
+  return changeExtras(request);
+}
+
+async function loadPlanned(range?: ShoppingRange): Promise<Response | {
+  totals?: ReturnType<typeof shoppingListWithContributions>;
+  loadError?: string;
+}> {
+  if (!range) return {};
 
   try {
     const response = await planningRequest('shopping-list', {
-      method: 'POST', body: JSON.stringify(range.data),
+      method: 'POST', body: JSON.stringify(range),
     });
     if (response.status === 302) return response;
     if (!response.ok) throw new Error();
     const { items } = shoppingListSchema.parse(await response.json());
     const totals = shoppingListWithContributions(items).sort((a, b) =>
       a.name.localeCompare(b.name) || (a.description ?? '').localeCompare(b.description ?? ''));
-    return { dates, totals };
+    return { totals };
   } catch {
-    return { dates, loadError: 'Could not load your shopping list. Please try again.' };
+    return { loadError: 'Could not load your shopping list. Please try again.' };
   }
 }
 
@@ -46,8 +55,8 @@ export function HydrateFallback() {
   return <><h1 className="page-title">Shopping list</h1><p role="status">Loading your shopping list…</p></>;
 }
 
-export default function ShoppingList({ loaderData }: Route.ComponentProps) {
-  const { dates, dateError, loadError, totals } = loaderData;
+export default function ShoppingList({ loaderData, actionData }: Route.ComponentProps) {
+  const { selection, range, rangeError, loadError, totals, extras, extrasError } = loaderData;
   const navigation = useNavigation();
   const revalidator = useRevalidator();
   const busy = navigation.state !== 'idle' || revalidator.state !== 'idle';
@@ -55,14 +64,10 @@ export default function ShoppingList({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <h1 className="page-title">Shopping list</h1>
-      <p>Ingredients for your meal plan, including both dates. Expand an item to see what each recipe needs.</p>
-      <Form method="get" className={styles.range} key={`${dates.from}/${dates.through}`}>
-        <label>From<input type="date" name="from" defaultValue={dates.from} required /></label>
-        <label>Through<input type="date" name="through" defaultValue={dates.through} required /></label>
-        <Button type="submit" disabled={busy}>Show list</Button>
-      </Form>
+      <ShoppingPeriods {...selection} />
+      {!busy && range && <p>{rangeLabel(range)}</p>}
       <section aria-label="Ingredients" aria-busy={busy}>
-        {busy ? <p role="status">Loading your shopping list…</p> : dateError ? <p role="alert">{dateError}</p> : loadError ? (
+        {busy ? <p role="status">Loading your shopping list…</p> : rangeError ? <p role="alert">{rangeError}</p> : loadError ? (
           <>
             <p role="alert">{loadError}</p>
             <Button variant="secondary" onClick={() => revalidator.revalidate()}>Try again</Button>
@@ -72,11 +77,54 @@ export default function ShoppingList({ loaderData }: Route.ComponentProps) {
             {totals.map(({ key, ...item }) => <IngredientRow key={key} {...item} />)}
           </ul>
         ) : (
-          <p>No ingredients found for these dates. <Link to={`/planning?week=${dates.from}`}>View meal plan</Link></p>
+          <p>No ingredients found for these dates. <Link to={range ? `/planning?week=${range.from}` : '/planning'}>View meal plan</Link></p>
         )}
       </section>
+      <ShoppingExtras items={extras} loadError={extrasError} result={actionData} busy={busy}
+        retry={() => revalidator.revalidate()} />
     </>
   );
+}
+
+function shoppingPeriodUrl(mode: Exclude<ShoppingMode, 'linked'>, days: number) {
+  return `?mode=${mode}&days=${days}`;
+}
+
+function ShoppingPeriods({ mode, days }: { mode: ShoppingMode; days: number }) {
+  const periods = [
+    ['days', 'Days ahead'],
+    ['next-week', 'Next week'],
+    ['all', 'All upcoming'],
+  ] as const;
+  return (
+    <div className={styles.periods}>
+      <nav aria-label="Shopping period" className={styles.options}>
+        {periods.map(([value, label]) => (
+          <Link key={value} to={shoppingPeriodUrl(value, days)} aria-current={mode === value ? 'true' : undefined}>
+            {label}
+          </Link>
+        ))}
+      </nav>
+      {mode === 'days' && <Stepper aria-label="Days to shop for" className={styles.dayCount}
+        label={`${days} ${days === 1 ? 'day' : 'days'}`}
+        previous={{
+          label: 'Shop for one fewer day', icon: '−',
+          ...(days > 1 ? { to: shoppingPeriodUrl('days', days - 1) } : { disabled: true }),
+        }}
+        next={{
+          label: 'Shop for one more day', icon: '+',
+          ...(days < maxShoppingDays ? { to: shoppingPeriodUrl('days', days + 1) } : { disabled: true }),
+        }}
+      />}
+    </div>
+  );
+}
+
+function rangeLabel({ from, to }: ShoppingRange) {
+  const start = calendarDate(from);
+  if (!to) return `All planned recipes from ${formatDate.format(start)} onward.`;
+  const last = shiftDate(to, -1);
+  return `Ingredients for ${from === last ? formatDate.format(start) : formatDate.formatRange(start, calendarDate(last))}.`;
 }
 
 type Ingredient = Omit<ReturnType<typeof shoppingListWithContributions>[number], 'key'>;
@@ -104,17 +152,5 @@ function IngredientRow({ name, description, original_names, recipes, ...total }:
         </ul>
       </details>
     </li>
-  );
-}
-
-function Quantities({ quantities, hasUnquantifiedMentions }: Pick<ShoppingTotal, 'quantities' | 'hasUnquantifiedMentions'>) {
-  return (
-    <span className={styles.quantities}>
-      {quantities.length > 0 && <span>{quantities.map(({ amount, unit }) =>
-        [formatAmount.format(amount), unit].filter(Boolean).join(' ')).join(' + ')}</span>}
-      {hasUnquantifiedMentions && <span className={styles.detail}>
-        {quantities.length > 0 ? 'Also mentioned without a quantity' : 'No quantity specified'}
-      </span>}
-    </span>
   );
 }
