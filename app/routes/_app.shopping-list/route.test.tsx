@@ -38,7 +38,7 @@ test('shows collapsed ingredient totals and per-recipe contributions without con
     { id: 'cabbage', name: 'cabbage', amount: 250, unit: 'g', source: salad },
     { id: 'cabbage', name: 'cabbage', amount: 1, unit: 'heads', source: soup },
     { id: 'salt', name: 'salt', amount: null, unit: null, source: soup },
-    { id: 'tofu', name: 'Tofu', description: 'Soft tofu', amount: 300, unit: 'g', source: soup },
+    { id: 'tofu', name: 'Tofu', description: 'Soft tofu', original_name: '嫩豆腐', amount: 300, unit: 'g', source: soup },
     { id: 'tofu', name: 'Tofu', description: 'Hard tofu', amount: 400, unit: 'g', source: salad },
   ] }));
   const data = await load('?from=2026-12-31&through=2026-12-31');
@@ -57,7 +57,7 @@ test('shows collapsed ingredient totals and per-recipe contributions without con
   assert.equal((cabbage.match(/Cabbage soup/g) ?? []).length, 1);
   assert.match(salt, /Cabbage soup<\/a>.*No quantity specified/);
   assert.match(hard, /<summary>.*Hard tofu.*400 g.*<\/summary>/);
-  assert.match(soft, /<summary>.*Soft tofu.*300 g.*<\/summary>/);
+  assert.match(soft, /<summary>.*<strong>Tofu<\/strong> \(嫩豆腐\).*Soft tofu.*300 g.*<\/summary>/);
   assert.doesNotMatch(html, /700 g/);
   assert.match(html, /name="through"[^>]*value="2026-12-31"/);
 

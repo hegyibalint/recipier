@@ -24,6 +24,21 @@ test('shopping list embeds recipes using direct filters, scales usages, and neve
   });
 });
 
+test('shopping list preserves original-language labels from the recipe document', async () => {
+  const document = {
+    ...recipe,
+    ingredients: recipe.ingredients.map(ingredient =>
+      ingredient.id === 'garlic' ? { ...ingredient, original_name: '大蒜' } : ingredient),
+  };
+  const handler = api(loader, () => page([source(1, document)]));
+  const response = await handler.request({ method: 'POST', payload: range });
+  assert.equal(response.status, 200);
+  const { items } = await response.json();
+  assert.equal(items[0].name, 'fresh Garlic');
+  assert.equal(items[0].original_name, '大蒜');
+  assert.equal('original_name' in items[2], false);
+});
+
 test('shopping list follows capped pages and handles an empty range', async () => {
   let empty = false;
   const handler = api(loader, (request, number) => {

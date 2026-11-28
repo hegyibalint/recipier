@@ -11,7 +11,7 @@ test('ingredient totals combine matching units and keep different units separate
     ingredients: [
       { id: 'salt', name: 'Salt' },
       { id: 'eggs', name: 'Eggs' },
-      { id: 'pepper', name: 'Pepper' },
+      { id: 'pepper', name: 'Sichuan peppercorns', original_name: '花椒' },
       { id: 'unused', name: 'Unused' },
     ],
     components: [
@@ -26,7 +26,7 @@ test('ingredient totals combine matching units and keep different units separate
     const html = renderToStaticMarkup(createElement(RecipeContents, { recipe, variant }));
     assert.match(html, /<li>Salt: 15g \+ 2 pinch<\/li>/);
     assert.match(html, /<li>Eggs: 3<\/li>/);
-    assert.match(html, /<li>Pepper<\/li>/);
+    assert.match(html, /<li>Sichuan peppercorns \(花椒\)<\/li>/);
     assert.match(html, /<li>Unused<\/li>/);
   }
 });

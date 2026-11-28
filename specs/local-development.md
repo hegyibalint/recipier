@@ -36,7 +36,8 @@ Dinner mealtimes. Chickpea bowls exercises multiple components and dependencies.
 Startup plans the tofu recipes, Pancakes, and Lemon pasta for the current weekend
 and prints a shopping-list link. Expand Soft tofu (650 g) to see the Chilled tofu
 and Mapo tofu contributions. Firm and hard tofu stay separate, as do generic and
-Chinese light soy sauce. Butter still shows 3 tbsp + 50 g. Remove a recipe's assignments before deleting it in the UI.
+Chinese light soy sauce. Fermented chili bean paste (豆瓣酱) shows the original
+packaging name. Butter still shows 3 tbsp + 50 g. Remove a recipe's assignments before deleting it in the UI.
 
 ## Isolation and persistence
 

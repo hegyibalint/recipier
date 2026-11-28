@@ -6,7 +6,8 @@ import { idSchema } from './schema.ts';
 const quantitySchema = z.object({ amount: z.number().positive(), unit: z.string().nullable() });
 const labelSchema = z.object({ name: z.string(), description: z.string().optional() });
 const shoppingItemSchema = labelSchema.extend({
-  id: z.string(), amount: quantitySchema.shape.amount.nullable(), unit: quantitySchema.shape.unit,
+  id: z.string(), original_name: z.string().optional(),
+  amount: quantitySchema.shape.amount.nullable(), unit: quantitySchema.shape.unit,
 });
 const sourcedItemSchema = shoppingItemSchema.extend({
   source: z.object({ id: idSchema, title: z.string() }),
@@ -15,6 +16,7 @@ export const shoppingListSchema = z.object({ items: z.array(sourcedItemSchema) }
 
 export const shoppingTotalSchema = labelSchema.extend({
   id: z.string(),
+  original_names: z.array(z.string()).optional(),
   quantities: z.array(quantitySchema),
   hasUnquantifiedMentions: z.boolean(),
 });
@@ -60,8 +62,15 @@ function groupBy<T>(items: T[], keyOf: (item: T) => string) {
 function summarizeIngredient(items: ShoppingItem[]): ShoppingTotal {
   const { id, name, description } = items[0];
   const detail = description?.trim();
+  const nameKey = name.trim().toLowerCase();
+  const originalNames = new Set<string>();
+  for (const item of items) {
+    const original = item.original_name?.trim();
+    if (original && original.toLowerCase() !== nameKey) originalNames.add(original);
+  }
   return {
     id, name: capitalize(name.trim()), ...(detail && { description: capitalize(detail) }),
+    ...(originalNames.size > 0 && { original_names: [...originalNames] }),
     ...sumUsages(items),
   };
 }

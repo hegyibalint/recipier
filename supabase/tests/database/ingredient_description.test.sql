@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(3);
+select plan(5);
 
 insert into auth.users (id) values ('00000000-0000-4000-8000-000000000001');
 insert into public.recipes (id, user_id, document) values (
@@ -21,6 +21,15 @@ select throws_ok(
 select throws_ok(
   $$update recipes set document = jsonb_set(document, '{ingredients,0,description}', '42') where id = '10000000-0000-4000-8000-000000000001'$$,
   '23514', null, 'A numeric description fails the document constraint'
+);
+
+select lives_ok(
+  $$update recipes set document = jsonb_set(document, '{ingredients,0,original_name}', '"嫩豆腐"') where id = '10000000-0000-4000-8000-000000000001'$$,
+  'A recipe can specify an original-language ingredient name'
+);
+select throws_ok(
+  $$update recipes set document = jsonb_set(document, '{ingredients,0,original_name}', '"   "') where id = '10000000-0000-4000-8000-000000000001'$$,
+  '23514', null, 'A blank original name fails the document constraint'
 );
 
 select * from finish();

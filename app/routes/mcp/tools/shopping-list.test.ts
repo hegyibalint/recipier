@@ -19,7 +19,7 @@ test('the MCP client reads grouped ingredients across every page with the caller
     const description = reads.length === 1 ? 'Soft tofu' : 'Hard tofu';
     const document = {
       ...recipe,
-      ingredients: [...recipe.ingredients, { id: 'tofu', name: 'Tofu', description }],
+      ingredients: [...recipe.ingredients, { id: 'tofu', name: 'Tofu', description, original_name: reads.length === 1 ? '嫩豆腐' : '硬豆腐' }],
       components: [{ id: 'soup', steps: [
         ...recipe.components[0].steps, { text: `Add \${i:tofu:${reads.length === 1 ? 300 : 400}:g}.` },
       ] }],
@@ -49,8 +49,8 @@ test('the MCP client reads grouped ingredients across every page with the caller
     assert.deepEqual(result.structuredContent, { items: [
       { id: 'cabbage', ...cabbage },
       { id: 'salt', ...salt },
-      { id: 'tofu', name: 'Tofu', description: 'Soft tofu', quantities: [{ amount: 300, unit: 'g' }], hasUnquantifiedMentions: false },
-      { id: 'tofu', name: 'Tofu', description: 'Hard tofu', quantities: [{ amount: 400, unit: 'g' }], hasUnquantifiedMentions: false },
+      { id: 'tofu', name: 'Tofu', description: 'Soft tofu', original_names: ['嫩豆腐'], quantities: [{ amount: 300, unit: 'g' }], hasUnquantifiedMentions: false },
+      { id: 'tofu', name: 'Tofu', description: 'Hard tofu', original_names: ['硬豆腐'], quantities: [{ amount: 400, unit: 'g' }], hasUnquantifiedMentions: false },
     ] });
     assert.ok(Array.isArray(result.content));
     const [content] = result.content;

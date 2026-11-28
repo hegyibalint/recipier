@@ -51,6 +51,19 @@ test('shopping totals only add matching ingredient IDs, names, descriptions and 
   }))), /supported numeric range/);
 });
 
+test('original names add packaging labels without splitting shopping groups', () => {
+  const base = { id: 'doubanjiang', name: 'fermented chili bean paste', amount: 1, unit: 'tbsp' };
+  assert.deepEqual(summarizeShoppingList([
+    base,
+    { ...base, original_name: ' 豆瓣酱 ' },
+    { ...base, original_name: '豆瓣酱' },
+    { ...base, original_name: '豆瓣醬' },
+  ]), [{
+    id: 'doubanjiang', name: 'Fermented chili bean paste', original_names: ['豆瓣酱', '豆瓣醬'],
+    quantities: [{ amount: 4, unit: 'tbsp' }], hasUnquantifiedMentions: false,
+  }]);
+});
+
 test('extraction flattens usages, preserves duplicates and names, and scales only explicit amounts', () => {
   assert.deepEqual(ingredientsForRecipe(recipe, 0.5), [
     { id: 'garlic', name: 'fresh Garlic', amount: 3, unit: 'cloves' },

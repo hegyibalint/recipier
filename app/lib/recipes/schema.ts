@@ -14,6 +14,9 @@ const ingredientSchema = z.strictObject({
   name: z.string().min(1).describe(
     'Ingredient identity only, e.g. "garlic", not "garlic, minced". Do not include preparation state; describe it in step text outside the reference. Reuse the same ingredient ID for whole, minced, or otherwise prepared uses.',
   ),
+  original_name: presentationTextSchema.describe(
+    'Optional ingredient name in its original language, as it may appear on packaging. Use the original script, e.g. "豆瓣酱" for fermented chili bean paste. Omit it if unknown or identical to name.',
+  ).optional(),
   description: presentationTextSchema.describe(
     'Optional shopping detail, e.g. "Soft tofu" or "Firm tofu". Keep preparation done during cooking in the step text.',
   ).optional(),

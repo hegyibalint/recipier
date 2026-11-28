@@ -81,14 +81,14 @@ export default function ShoppingList({ loaderData }: Route.ComponentProps) {
 
 type Ingredient = Omit<ReturnType<typeof shoppingListWithContributions>[number], 'key'>;
 
-function IngredientRow({ name, description, recipes, ...total }: Ingredient) {
+function IngredientRow({ name, description, original_names, recipes, ...total }: Ingredient) {
   return (
     <li>
       <details className={styles.ingredient}>
         <summary>
           <span className={styles.itemHeading}>
             <span>
-              <strong>{name}</strong>
+              <strong>{name}</strong>{original_names?.length ? ` (${original_names.join(' / ')})` : ''}
               {description && <span className={styles.detail}>{description}</span>}
             </span>
             <Quantities {...total} />

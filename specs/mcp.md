@@ -166,10 +166,12 @@ recipe documents. It returns grouped totals:
 ```
 
 Each row groups by the combination of ID, name, and optional description.
-Names and descriptions ignore case and surrounding whitespace. Units match after
-trimming only; mixed units and unitless quantities stay separate. Bare mentions are flagged
-but don't add a quantity. An empty `items` array is a successful result; load failures
-return `isError: true` and a generic error instead of a partial list.
+Names and descriptions ignore case and surrounding whitespace. When saved,
+original-language packaging labels are returned as `original_names` and do not
+change grouping. Units match after trimming only; mixed units and unitless
+quantities stay separate. Bare mentions are flagged but don't add a quantity.
+An empty `items` array is a successful result; load failures return `isError: true`
+and a generic error instead of a partial list.
 
 The agent keeps distinct descriptions separate in its shopping instructions.
 It combines compatible units within a row and rounds up to known buyable

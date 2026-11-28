@@ -53,6 +53,11 @@ describe('local development fixtures', () => {
       { description: 'Hard tofu', quantities: [{ amount: 400, unit: 'g' }] },
       { description: 'Firm tofu', quantities: [{ amount: 400, unit: 'g' }] },
     ]);
+    expect(totals.find(item => item.id === 'doubanjiang')).toMatchObject({
+      name: 'Fermented chili bean paste',
+      original_names: ['豆瓣酱'],
+      quantities: [{ amount: 1, unit: 'tbsp' }, { amount: 2, unit: 'tsp' }],
+    });
     expect(totals.filter(item => item.id === 'soy-sauce')).toMatchObject([
       { quantities: [{ amount: 3, unit: 'tbsp' }] },
       { description: 'Chinese light soy sauce', quantities: [{ amount: 1, unit: 'tbsp' }] },

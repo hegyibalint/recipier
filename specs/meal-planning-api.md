@@ -74,8 +74,9 @@ are both inclusive. It sends the API an exclusive end date one day after **Throu
 The page groups usages by the combination of ingredient ID, name, and optional
 description. Names and descriptions ignore case and surrounding whitespace.
 Each combination gets its own row, so soft tofu and hard tofu have separate
-totals. Only matching units (ignoring surrounding whitespace) are summed within
-a row. Bare mentions do not add to the total. The page does not convert units,
+totals. Original-language names appear in parentheses without splitting the row.
+Only matching units (ignoring surrounding whitespace) are summed within a row.
+Bare mentions do not add to the total. The page does not convert units,
 round up to pack sizes, or subtract pantry stock. Expand an ingredient to see
 how much each recipe contributes, including repeated assignments of that recipe.
 
@@ -162,8 +163,8 @@ curl "$APP_ORIGIN/api/shopping-list" \
 Ingredient usages are concatenated from planned recipes. Explicit quantities are
 scaled by each entry's multiplier; bare mentions remain `amount: null`. Missing
 units are `null`. Each usage includes its recipe-local ingredient `id`, original
-`name`, and `description` when present, plus the source recipe's ID and title.
-Repeated references and units are preserved.
+`name`, optional `description` and `original_name`, plus the source recipe's ID
+and title. Repeated references and units are preserved.
 Each component's own steps are visited once; component references are not traversed.
 There is no reconciliation, deduplication, unit conversion, pantry subtraction,
 or serving inference. Empty ranges return empty arrays.

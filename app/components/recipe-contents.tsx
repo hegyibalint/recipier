@@ -19,7 +19,8 @@ export function RecipeContents({ recipe, headingLevel = 2, variant = 'full', cla
         {recipe.ingredients.length > 0
           ? <ul>{recipe.ingredients.map(ingredient => (
             <li key={ingredient.id}>
-              {ingredient.name}{quantities.has(ingredient.id) ? `: ${quantities.get(ingredient.id)}` : ''}
+              {ingredient.name}{ingredient.original_name && ` (${ingredient.original_name})`}
+              {quantities.has(ingredient.id) ? `: ${quantities.get(ingredient.id)}` : ''}
             </li>
           ))}</ul>
           : <p>No ingredients listed.</p>}
